@@ -8,3 +8,4 @@ __pycache__/
 *.pyc
 .DS_Store
 *.pkl
+hand_gesture_model.joblib
