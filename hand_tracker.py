@@ -8,7 +8,7 @@ model = joblib.load('hand_gesture_model.joblib')
 
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-
+prediction = ""
 current_frame = None
 img = None; 
 
@@ -64,6 +64,7 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
             data.append(joint.y)
             data.append(joint.z)
         prediction = predict_sign(model, data)
+        break
 
 
     
@@ -132,8 +133,10 @@ while True:
     cv.waitKey(2)
 
     #Get coordinates to display seperate frame of skeleton outline on the first window
-    if latest_landmarks and prediction:
-                    cv.putText(frame, prediction, (50, 50), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3, cv.LINE_AA)
+    if prediction:
+        cv.putText(frame, prediction, (50, 50), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3, cv.LINE_AA)
+    else:
+        cv.putText(frame, "No prediction", (50, 50), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3, cv.LINE_AA)
     cv.imshow('frame', frame)
 
     

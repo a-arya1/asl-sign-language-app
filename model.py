@@ -10,7 +10,16 @@ import joblib
 
 def predict_sign(model, landmark_data):
     landmark_data = np.array(landmark_data).reshape(1, -1)
+    proba = model.predict_proba(landmark_data)[0]
+    mostConfident = max(proba)
+    if mostConfident > 0.2:
+        predictedletter = model.classes_[np.argmax(proba)]
+        return predictedletter
+    else:
+        return ""
+
     return model.predict(landmark_data)[0]
+
 #use this function later in hand_tracker.py with the landmark data
 
 dataFrame = pd.read_csv('handsData.csv')
@@ -24,7 +33,7 @@ x = dataFrame.drop(columns=[label])
 y = dataFrame[label]
 #use 20% of the data for testing the model and 80% for training it.
 xTrain, xTest, yTrain, yTest = train_test_split(x,y, test_size=0.2, random_state=99) #random seed number easier to debug
-model = RandomForestClassifier(n_estimators=100, random_state=99, n_jobs=-1)
+model = RandomForestClassifier(n_estimators=200, random_state=99, n_jobs=-1)
 model.fit(xTrain, yTrain)
 
 yPred = model.predict(xTest)
