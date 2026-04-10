@@ -2,6 +2,10 @@ import cv2 as cv
 import numpy as np
 import mediapipe as mp
 import time
+import joblib
+from model import predict_sign
+model = joblib.load('hand_gesture_model.joblib')
+
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
@@ -42,7 +46,7 @@ latest_landmarks = []
 # Create a hand landmarker instance with the live stream mode:
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     global current_frame
-
+    global prediction 
     if(current_frame is None):
         return
     height, width, _=  current_frame.shape
@@ -50,11 +54,19 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
     latest_landmarks=result.hand_landmarks
 
     #Prints x,y,z coordinates of 21 joints in hand (0 indexed)
+    if not(latest_landmarks):
+        prediction = ""
+        return
     for hand in result.hand_landmarks:
-        for index, joint in enumerate(hand):
-            x= int(joint.x * width)
-            y = int(joint.y * height)
-            print(f"Joint {index} x: {joint.x} y: {joint.y} z: {joint.x}")
+        data = []
+        for joint in hand:
+            data.append(joint.x)
+            data.append(joint.y)
+            data.append(joint.z)
+        prediction = predict_sign(model, data)
+
+
+    
 
 
 
@@ -114,11 +126,14 @@ while True:
 
                 cv.line(img, (x1,y1), (x2,y2), (255,0,0), 2)
 
+                
+
 
     cv.waitKey(2)
 
     #Get coordinates to display seperate frame of skeleton outline on the first window
-    
+    if latest_landmarks and prediction:
+                    cv.putText(frame, prediction, (50, 50), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3, cv.LINE_AA)
     cv.imshow('frame', frame)
 
     
