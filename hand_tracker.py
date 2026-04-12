@@ -11,6 +11,15 @@ from mediapipe.tasks.python import vision
 prediction = ""
 current_frame = None
 img = None; 
+current_sentence = []
+lastLetter = ""
+lastTime = 0
+cooldown = 1.5
+added_message = ""
+added_time = 0
+action_message = ""
+actionTime = 0
+
 
 BaseOptions = mp.tasks.BaseOptions
 HandLandmarker = mp.tasks.vision.HandLandmarker
@@ -64,6 +73,16 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
             data.append(joint.y)
             data.append(joint.z)
         prediction = predict_sign(model, data)
+        global current_sentence, lastLetter, lastTime, added_message, added_time
+        if prediction:
+            currTime = time.time()
+            if(prediction != lastLetter or (currTime - lastTime)> cooldown):
+                current_sentence.append(prediction)
+                lastLetter = prediction
+                lastTime = currTime
+                added_message = f"Added: {prediction}"
+                added_time= currTime
+
         break
 
 
@@ -84,7 +103,7 @@ options = HandLandmarkerOptions(
 
 landmarker = HandLandmarker.create_from_options(options)
 
-#Checks if the cameras working
+#Chec ks if the cameras working
 cap = cv.VideoCapture(0)
 if not cap.isOpened():
     print("Cannot open camera")
@@ -131,12 +150,76 @@ while True:
 
 
     cv.waitKey(2)
-
-    #Get coordinates to display seperate frame of skeleton outline on the first window
+    
+    #Some of this UI stuff below was made by claude
+    currentTime = time.time()
+    
+    box_height = 120
+    box_start_y = height - box_height
+    
+    overlay = frame.copy()
+    cv.rectangle(overlay, (0, box_start_y), (width, height), (40, 40, 40), -1)
+    cv.addWeighted(overlay, 0.7, frame, 0.3, 0, frame)
+    
+    cv.rectangle(frame, (0, box_start_y), (width, height), (100, 100, 100), 2)
+    current_sentence_text = "".join(current_sentence)
+    if int(currentTime * 2) % 2 == 0: 
+        current_sentence_text += "|"
+    
+    cv.putText(frame, current_sentence_text, (20, box_start_y + 65), 
+               cv.FONT_HERSHEY_SIMPLEX, 1.8, (255, 255, 255), 3)
+    
+    # Label
+    cv.putText(frame, "Your Message:", (20, box_start_y + 30), 
+               cv.FONT_HERSHEY_SIMPLEX, 0.7, (150, 150, 150), 2)
+    
+    
     if prediction:
-        cv.putText(frame, prediction, (50, 50), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3, cv.LINE_AA)
+        letter_text = f"{prediction}"
+        text_size = cv.getTextSize(letter_text, cv.FONT_HERSHEY_SIMPLEX, 3, 4)[0]
+        text_x = (width - text_size[0]) // 2
+        
+        cv.circle(frame, (text_x + text_size[0]//2, 120), 60, (0, 180, 0), -1)
+        cv.circle(frame, (text_x + text_size[0]//2, 120), 60, (0, 255, 0), 3)
+        
+        cv.putText(frame, letter_text, (text_x, 140), 
+                   cv.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 255), 4)
     else:
-        cv.putText(frame, "No prediction", (50, 50), cv.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 3, cv.LINE_AA)
+        cv.putText(frame, "No letter detected", (width//2 - 150, 130), 
+                   cv.FONT_HERSHEY_SIMPLEX, 1, (100, 100, 100), 2)
+    
+    
+    if currentTime - added_time < 0.5:
+        text_size = cv.getTextSize(added_message, cv.FONT_HERSHEY_SIMPLEX, 1, 2)[0]
+        text_x = width - text_size[0] - 20
+        cv.putText(frame, added_message, (text_x, 50), 
+                   cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+    
+    
+    if currentTime - actionTime < 1.0:
+        cv.putText(frame, action_message, (20, box_start_y - 20), 
+                   cv.FONT_HERSHEY_SIMPLEX, 0.8, (100, 255, 100), 2)
+    
+    
+    instructions = [
+        "SPACE = space",
+        "BACKSPACE = Delete",
+        "C = Clear",
+        "Q = Quit"
+    ]
+    
+    inst_box_width = 280
+    inst_box_height = len(instructions) * 30 + 20
+    overlay_inst = frame.copy()
+    cv.rectangle(overlay_inst, (10, 10), (inst_box_width, inst_box_height), (30, 30, 30), -1)
+    cv.addWeighted(overlay_inst, 0.6, frame, 0.4, 0, frame)
+    cv.rectangle(frame, (10, 10), (inst_box_width, inst_box_height), (80, 80, 80), 1)
+    
+    y_position = 35
+    for instruction in instructions:
+        cv.putText(frame, instruction, (20, y_position), 
+                   cv.FONT_HERSHEY_SIMPLEX, 0.5, (180, 180, 180), 1)
+        y_position += 30
     cv.imshow('frame', frame)
 
     
@@ -144,7 +227,21 @@ while True:
         cv.imshow('image', img)
     if cv.waitKey(1) == ord('q'):
         break
-    
+    elif cv.waitKey(1) == ord('c'):
+        current_sentence = []
+        lastLetter = ""
+        action_message = "cleared!"    
+        actionTime = time.time()
+    elif cv.waitKey(1) == 32:
+        current_sentence.append(" ")
+        lastLetter = " "
+        lastTime = time.time()
+        added_message = "Added: Space"
+        added_time = time.time()
+    elif cv.waitKey(1) == 0 or cv.waitKey(1) == 127:
+        removed = current_sentence.pop()
+        action_message = f"Removed: {removed}"
+        actionTime = time.time()
 
 cap.release()
 cv.destroyAllWindows()
