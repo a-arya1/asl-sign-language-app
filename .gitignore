@@ -9,3 +9,5 @@ __pycache__/
 .DS_Store
 *.pkl
 hand_gesture_model.joblib
+/Users/abhasharyal/Downloads/SignAlphaSet/
+

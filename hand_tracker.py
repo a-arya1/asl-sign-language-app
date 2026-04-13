@@ -222,23 +222,23 @@ while True:
         y_position += 30
     cv.imshow('frame', frame)
 
-    
+    key = cv.waitKey(1)
     if img is not None:
         cv.imshow('image', img)
-    if cv.waitKey(1) == ord('q'):
+    if key == ord('q'):
         break
-    elif cv.waitKey(1) == ord('c'):
+    elif key == ord('c'):
         current_sentence = []
         lastLetter = ""
         action_message = "cleared!"    
         actionTime = time.time()
-    elif cv.waitKey(1) == 32:
+    elif key == 32:
         current_sentence.append(" ")
         lastLetter = " "
         lastTime = time.time()
         added_message = "Added: Space"
         added_time = time.time()
-    elif cv.waitKey(1) == 0 or cv.waitKey(1) == 127:
+    elif key == 0 or key == 127:
         removed = current_sentence.pop()
         action_message = f"Removed: {removed}"
         actionTime = time.time()

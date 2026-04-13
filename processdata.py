@@ -23,7 +23,9 @@ landmarker = HandLandmarker.create_from_options(options)
 dataset = "archive/asl_alphabet_train/asl_alphabet_train"
 dataset_files = sorted(os.listdir(dataset))
 
-    
+mendeley_dataset = "/Users/abhasharyal/Downloads/SignAlphaSet"
+mendeley_files = sorted(os.listdir(mendeley_dataset))
+
 
 with open("handsData.csv", mode="w", newline="") as file:
     writer = csv.writer(file)
@@ -59,7 +61,31 @@ with open("handsData.csv", mode="w", newline="") as file:
                 xyzValues.append(files)
                 writer.writerow(xyzValues)
         print("letter name: " + files)
-
+    for files in mendeley_files:
+            if files.isalpha() != True or files.__len__() > 1:
+                continue
+            folder_path = os.path.join(mendeley_dataset, files)
+            if not os.path.isdir(folder_path):
+                continue
+            for image in os.listdir(folder_path):
+                imagesPath = os.path.join(folder_path, image)
+                image = cv.imread(imagesPath)
+                if image is None:
+                    continue
+                image_rgb_form = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+                mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_rgb_form)
+                hands = landmarker.detect(mp_image)
+                if not hands.hand_landmarks:
+                    continue
+                else:
+                    xyzValues = []
+                    for hand in hands.hand_landmarks[0]:
+                        xyzValues.append(hand.x)
+                        xyzValues.append(hand.y)
+                        xyzValues.append(hand.z)
+                    xyzValues.append(files)
+                    writer.writerow(xyzValues)
+            print("letter name: " + files)
 
 
 
