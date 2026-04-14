@@ -4,6 +4,7 @@ import mediapipe as mp
 import time
 import joblib
 from model import predict_sign
+from normalize_data import normalize_landmarks
 model = joblib.load('hand_gesture_model.joblib')
 
 from mediapipe.tasks import python
@@ -72,7 +73,9 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
             data.append(joint.x)
             data.append(joint.y)
             data.append(joint.z)
+        data = normalize_landmarks(data)
         prediction = predict_sign(model, data)
+
         global current_sentence, lastLetter, lastTime, added_message, added_time
         if prediction:
             currTime = time.time()
@@ -149,7 +152,6 @@ while True:
                 
 
 
-    cv.waitKey(2)
     
     #Some of this UI stuff below was made by claude
     currentTime = time.time()

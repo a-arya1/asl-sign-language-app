@@ -5,7 +5,7 @@ import mediapipe as mp
 import csv
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
-
+from normalize_data import normalize_landmarks
 BaseOptions = mp.tasks.BaseOptions
 HandLandmarker = mp.tasks.vision.HandLandmarker
 HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
@@ -58,6 +58,7 @@ with open("handsData.csv", mode="w", newline="") as file:
                     xyzValues.append(hand.x)
                     xyzValues.append(hand.y)
                     xyzValues.append(hand.z)
+                xyzValues = normalize_landmarks(xyzValues)
                 xyzValues.append(files)
                 writer.writerow(xyzValues)
         print("letter name: " + files)
@@ -83,6 +84,7 @@ with open("handsData.csv", mode="w", newline="") as file:
                         xyzValues.append(hand.x)
                         xyzValues.append(hand.y)
                         xyzValues.append(hand.z)
+                    xyzValues = normalize_landmarks(xyzValues)
                     xyzValues.append(files)
                     writer.writerow(xyzValues)
             print("letter name: " + files)
