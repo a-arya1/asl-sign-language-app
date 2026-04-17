@@ -4,14 +4,16 @@ import mediapipe as mp
 import time
 import joblib
 from model import predict_sign
-from normalize_data import normalize_landmarks
+from normalize_data import normalize_landmarks, get_angle_features
+from collections import deque
+
 model = joblib.load('hand_gesture_model.joblib')
+prediction_buffer = deque(maxlen = 7)
 
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 prediction = ""
 current_frame = None
-img = None; 
 current_sentence = []
 lastLetter = ""
 lastTime = 0
@@ -20,6 +22,7 @@ added_message = ""
 added_time = 0
 action_message = ""
 actionTime = 0
+confidence = 0.0
 
 
 BaseOptions = mp.tasks.BaseOptions
@@ -57,6 +60,8 @@ latest_landmarks = []
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     global current_frame
     global prediction 
+    global prediction_buffer
+    global confidence
     if(current_frame is None):
         return
     height, width, _=  current_frame.shape
@@ -74,7 +79,22 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
             data.append(joint.y)
             data.append(joint.z)
         data = normalize_landmarks(data)
-        prediction = predict_sign(model, data)
+        landmarks_2d = []
+        for joint in hand:
+            landmarks_2d.append((joint.x, joint.y))
+        angle_features = get_angle_features(landmarks_2d)
+        features = data + angle_features
+        
+        probs = model.predict_proba(np.array(features).reshape(1, -1))[0]
+        prediction_buffer.append(probs)
+
+        avg = np.mean(prediction_buffer, axis=0)
+        confidence = float(max(avg))
+        if confidence > 0.50:
+            prediction = model.classes_[np.argmax(avg)]
+        else:
+            prediction = ""
+
 
         global current_sentence, lastLetter, lastTime, added_message, added_time
         if prediction:
@@ -127,7 +147,6 @@ while True:
     #Shows Frame
     current_frame = frame
     height, width, _=  current_frame.shape
-    img = np.zeros([height, width, 3], np.uint8)
 
     for hand in latest_landmarks:
         for index, joint in enumerate(hand):
@@ -147,7 +166,6 @@ while True:
                 y2 = int(handPositionEnd.y * height)
                 cv.line(frame, (x1,y1), (x2,y2), (255,0,0), 2)
 
-                cv.line(img, (x1,y1), (x2,y2), (255,0,0), 2)
 
                 
 
@@ -186,6 +204,8 @@ while True:
         
         cv.putText(frame, letter_text, (text_x, 140), 
                    cv.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 255), 4)
+        cv.putText(frame, f"{int(confidence * 100)}%", (text_x, 175),
+               cv.FONT_HERSHEY_SIMPLEX, 0.9, (200, 200, 200), 2)
     else:
         cv.putText(frame, "No letter detected", (width//2 - 150, 130), 
                    cv.FONT_HERSHEY_SIMPLEX, 1, (100, 100, 100), 2)
@@ -225,8 +245,7 @@ while True:
     cv.imshow('frame', frame)
 
     key = cv.waitKey(1)
-    if img is not None:
-        cv.imshow('image', img)
+
     if key == ord('q'):
         break
     elif key == ord('c'):

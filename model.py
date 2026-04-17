@@ -12,11 +12,11 @@ def predict_sign(model, landmark_data):
     landmark_data = np.array(landmark_data).reshape(1, -1)
     proba = model.predict_proba(landmark_data)[0]
     mostConfident = max(proba)
-    if mostConfident > 0.3:
+    if mostConfident > 0.50:
         predictedletter = model.classes_[np.argmax(proba)]
-        return predictedletter
+        return predictedletter, mostConfident
     else:
-        return ""
+        return "", 0.0
 
     return model.predict(landmark_data)[0]
 
@@ -33,7 +33,14 @@ x = dataFrame.drop(columns=[label])
 y = dataFrame[label]
 #use 20% of the data for testing the model and 80% for training it.
 xTrain, xTest, yTrain, yTest = train_test_split(x,y, test_size=0.2, random_state=99) #random seed number easier to debug
-model = RandomForestClassifier(n_estimators=200, random_state=99, n_jobs=-1)
+model = RandomForestClassifier(
+    n_estimators=300,
+    max_depth=None,
+    min_samples_leaf=2,
+    class_weight='balanced',
+    random_state=99,
+    n_jobs=-1
+)
 model.fit(xTrain, yTrain)
 
 yPred = model.predict(xTest)
