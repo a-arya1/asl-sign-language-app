@@ -4,6 +4,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import joblib
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 #Talk about why using random forest instead of tensor flow 
 #better for tabular data, tensor flow would be overkill. 
 
@@ -12,7 +15,7 @@ def predict_sign(model, landmark_data):
     landmark_data = np.array(landmark_data).reshape(1, -1)
     proba = model.predict_proba(landmark_data)[0]
     mostConfident = max(proba)
-    if mostConfident > 0.50:
+    if mostConfident > 0.35:
         predictedletter = model.classes_[np.argmax(proba)]
         return predictedletter, mostConfident
     else:
@@ -47,6 +50,7 @@ yPred = model.predict(xTest)
 accuracy = accuracy_score(yTest, yPred)
 print(f"Accuracy: {accuracy}")
 print(classification_report(yTest, yPred))
+
 
 joblib.dump(model, 'hand_gesture_model.joblib')
 

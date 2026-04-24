@@ -13,6 +13,7 @@ def normalize_landmarks(data):
     if ref_dist > 0:
         normalized_data = [v / ref_dist for v in normalized_data]
     return normalized_data
+
 def get_angle_features(lm):
     # lm = list of 21 (x,y) tuples
     def calc_angle(a, b, c):

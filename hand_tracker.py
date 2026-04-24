@@ -23,6 +23,9 @@ added_time = 0
 action_message = ""
 actionTime = 0
 confidence = 0.0
+stableLetter = ""
+stableLetterCount = 0
+stabbleLetterThreshold = 8
 
 
 BaseOptions = mp.tasks.BaseOptions
@@ -97,14 +100,26 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
 
 
         global current_sentence, lastLetter, lastTime, added_message, added_time
+        global stableLetter, stableLetterCount
+
         if prediction:
             currTime = time.time()
-            if(prediction != lastLetter or (currTime - lastTime)> cooldown):
-                current_sentence.append(prediction)
-                lastLetter = prediction
-                lastTime = currTime
-                added_message = f"Added: {prediction}"
-                added_time= currTime
+            if prediction == stableLetter:
+                stableLetterCount += 1
+            else:
+                stableLetter = prediction
+                stableLetterCount = 1  # reset count if letter changed
+
+            if stableLetterCount == stabbleLetterThreshold:
+                if prediction != lastLetter or (currTime - lastTime) > cooldown:
+                    current_sentence.append(prediction)
+                    lastLetter = prediction
+                    lastTime = currTime
+                    added_message = f"Added: {prediction}"
+                    added_time = currTime
+        else:
+            stableLetter = ""
+            stableLetterCount = 0
 
         break
 
