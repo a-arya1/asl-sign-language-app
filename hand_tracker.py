@@ -6,10 +6,17 @@ import joblib
 from model import predict_sign
 from normalize_data import normalize_landmarks, get_angle_features
 from collections import deque
+from dtaidistance import dtw
+
 
 model = joblib.load('hand_gesture_model.joblib')
 prediction_buffer = deque(maxlen = 7)
+jtemplates = [np.load(f'templates/J/t{x}.npy') for x in range(5)]
+ztemplates = [np.load(f'templates/Z/t{x}.npy') for x in range(5)]
 
+wristBuf = deque(maxlen=30)
+THRESH = 0.15
+mCooldown = 0
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 prediction = ""
@@ -61,14 +68,14 @@ latest_landmarks = []
 
 # Create a hand landmarker instance with the live stream mode:
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
-    global current_frame
-    global prediction 
-    global prediction_buffer
-    global confidence
+    global current_frame, prediction, prediction_buffer, confidence
+    global wristBuf, mCooldown
+    global current_sentence, lastLetter, lastTime, added_message, added_time
+    global stableLetter, stableLetterCount, latest_landmarks
+
     if(current_frame is None):
         return
     height, width, _=  current_frame.shape
-    global latest_landmarks
     latest_landmarks=result.hand_landmarks
 
     #Prints x,y,z coordinates of 21 joints in hand (0 indexed)
@@ -87,7 +94,52 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
             landmarks_2d.append((joint.x, joint.y))
         angle_features = get_angle_features(landmarks_2d)
         features = data + angle_features
-        
+        wristBuf.append([hand[0].x, hand[0].y])
+
+        if len(wristBuf) == 30:
+            wp = np.array(wristBuf)
+
+            jdists = []
+            for t in jtemplates:
+                dx = dtw.distance(wp[:,0], t[:,0])
+                dy = dtw.distance(wp[:,1], t[:,1])
+                jdists.append((dx+dy)/2)
+
+            zdists = []
+            for t in ztemplates:
+                dx = dtw.distance(wp[:,0], t[:,0])
+                dy = dtw.distance(wp[:,1], t[:,1])
+                zdists.append((dx+dy)/2)
+
+            jBest = min(jdists)
+            zBest = min(zdists)
+            ct = time.time()
+
+            if ct > mCooldown:
+                if jBest < THRESH and jBest < zBest:
+                    current_sentence.append("J")
+                    lastLetter = "J"
+                    lastTime = ct
+                    added_message = "Added: J"
+                    added_time = ct
+                    mCooldown = ct + 2.0
+                    prediction = "J"
+
+                elif zBest < THRESH and zBest < jBest:
+                    current_sentence.append("Z")
+                    lastLetter = "Z"
+                    lastTime = ct
+                    added_message = "Added: Z"
+                    added_time = ct
+                    mCooldown = ct + 2.0
+                    prediction = "Z"
+        # if hand is moving dont let it output I since it might be J mid-sign
+        if len(wristBuf) >= 5:
+            recentWrist = np.array(list(wristBuf)[-5:])
+            movement = np.sum(np.abs(np.diff(recentWrist, axis=0)))
+            handIsMoving = movement > 0.02
+        else:
+            handIsMoving = False
         probs = model.predict_proba(np.array(features).reshape(1, -1))[0]
         prediction_buffer.append(probs)
 
@@ -95,12 +147,11 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
         confidence = float(max(avg))
         if confidence > 0.50:
             prediction = model.classes_[np.argmax(avg)]
+            if prediction == 'I' and handIsMoving:
+                prediction = ""
         else:
             prediction = ""
 
-
-        global current_sentence, lastLetter, lastTime, added_message, added_time
-        global stableLetter, stableLetterCount
 
         if prediction:
             currTime = time.time()
