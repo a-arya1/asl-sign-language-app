@@ -138,7 +138,7 @@ asl-sign-language-app/
 ## Known Limitations
 
 - **E / S / C and M / N confusion** — these letters look very similar as static poses. Recording personal training data for these letters helps most.
-- **J and Z not supported** — these require motion and cannot be recognized by a single-frame model.
+- **J and Z not the best** — these require motion and cannot be recognized by a single-frame model.
 - **Lighting sensitivity** — the model was trained on studio images. Poor webcam lighting will lower confidence. Collecting personal data in your normal environment helps.
 
 ---
