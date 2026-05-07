@@ -71,7 +71,7 @@ pip install -r requirements.txt
 
 The model file is too large to host on GitHub. Download it from Google Drive and place it in the root of the project folder:
 
-[Download hand_gesture_model.joblib](https://drive.google.com/file/d/1Cv8PrXy5M9PfmDbuoKZz91maVrv6jJm_/view?usp=sharing)
+[Download hand_gesture_model.joblib](https://drive.google.com/file/d/1yg_r-LzS1uEODFdtGmgB0snOu5-Wka64/view?usp=sharing)
 
 Your project folder should look like this before running:
 asl-sign-language-app/
