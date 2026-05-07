@@ -6,7 +6,9 @@ Real-time American Sign Language alphabet recognition using a webcam. MediaPipe 
 
 ## Demo
 
-*Video coming soon*
+[![ASL App Demo](<img width="1523" height="858" alt="Screenshot 2026-05-07 at 9 44 34 AM" src="https://github.com/user-attachments/assets/33aa5729-318c-4427-bf1f-24129979a678" />
+)](https://youtu.be/gxJ14KcgL88)
+
 
 ---
 
