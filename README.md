@@ -1,7 +1,35 @@
 # ASL Sign Language App
 
 Real-time American Sign Language alphabet recognition using a webcam. MediaPipe detects 21 hand landmarks per frame, which are normalized and enriched with finger joint angles, and a Random Forest classifier predicts which ASL letter is being signed.
+## ⬇️ For Hackathon Judges — Download & Run
 
+**Step 1** — Go to the [Latest Release](https://github.com/a-arya1/asl-sign-language-app/releases) and download all three files:
+- `Source code (zip)` — the main project
+- `hand_gesture_model.joblib` — the pretrained model
+- `hand_landmarker.task` — the MediaPipe model
+
+**Step 2** — Unzip `Source code (zip)` and move both downloaded files into the unzipped folder so it looks like this:
+asl-sign-language-app/
+├── hand_gesture_model.joblib   ← move here
+├── hand_landmarker.task        ← move here
+├── hand_tracker.py
+├── requirements.txt
+├── ...
+
+**Step 3** — Open a terminal in that folder and run:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate        # Mac/Linux
+venv\Scripts\activate           # Windows
+
+pip install -r requirements.txt
+python hand_tracker.py
+```
+
+**Requirements:** Python 3.9+, a webcam, and about 2 minutes to install dependencies.
+
+---
 ---
 
 ## Demo
