@@ -116,6 +116,7 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
             ct = time.time()
 
             if ct > mCooldown:
+               
                 if jBest < THRESH and jBest < zBest:
                     current_sentence.append("J")
                     lastLetter = "J"
@@ -124,7 +125,7 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
                     added_time = ct
                     mCooldown = ct + 2.0
                     prediction = "J"
-
+                
                 elif zBest < THRESH and zBest < jBest:
                     current_sentence.append("Z")
                     lastLetter = "Z"
@@ -133,6 +134,7 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
                     added_time = ct
                     mCooldown = ct + 2.0
                     prediction = "Z"
+                
         # if hand is moving dont let it output I since it might be J mid-sign
         if len(wristBuf) >= 5:
             recentWrist = np.array(list(wristBuf)[-5:])
