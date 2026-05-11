@@ -3,7 +3,6 @@ import numpy as np
 import mediapipe as mp
 import time
 import joblib
-from model import predict_sign
 from normalize_data import normalize_landmarks, get_angle_features
 from collections import deque
 
