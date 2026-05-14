@@ -5,6 +5,8 @@ import time
 import joblib
 from normalize_data import normalize_landmarks, get_angle_features
 from collections import deque
+import platform
+
 
 model = joblib.load('hand_gesture_model.joblib')
 prediction_buffer = deque(maxlen = 7)
@@ -141,10 +143,31 @@ options = HandLandmarkerOptions(
 landmarker = HandLandmarker.create_from_options(options)
 
 #Chec ks if the cameras working
-cap = cv.VideoCapture(0)
-if not cap.isOpened():
-    print("Cannot open camera")
-    exit()
+def open_camera():
+    system = platform.system()
+    if system == "Darwin":
+        backends = [cv.CAP_AVFOUNDATION]
+    elif system == "Windows":
+        backends = [cv.CAP_DSHOW, cv.CAP_MSMF]
+    elif system == "Linux":
+        backends = [cv.CAP_V4L2]
+    else:
+        backends = [cv.CAP_ANY]
+    for backend in backends:
+        for index in range(5):
+            print(f"Trying camera {index} with backend {backend}")
+            cap = cv.VideoCapture(index, backend)
+            if not cap.isOpened():
+                cap.release()
+                continue
+            ret, frame = cap.read()
+            if ret and frame is not None:
+                print(f"Using camera {index}")
+                return cap
+            cap.release()
+    raise RuntimeError("No working camera found")
+
+cap = open_camera()
 
 while True:
     #Capture all frames of the video 
