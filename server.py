@@ -30,21 +30,13 @@ import requests
 MODEL_PATH = "hand_gesture_model.joblib"
 if not os.path.exists(MODEL_PATH):
     print("Downloading model from Google Drive...")
-    file_id = "1yg_r-LzS1uEODFdtGmgB0snOu5-Wka64"
-    session = requests.Session()
-    url = f"https://drive.google.com/uc?export=download&id={file_id}"
-    response = session.get(url, stream=True)
-    # Handle large file confirmation
-    for key, value in response.cookies.items():
-        if key.startswith("download_warning"):
-            url = f"https://drive.google.com/uc?export=download&confirm={value}&id={file_id}"
-            response = session.get(url, stream=True)
-            break
-    with open(MODEL_PATH, "wb") as f:
-        for chunk in response.iter_content(32768):
-            f.write(chunk)
-    print("Download complete.")
-print("Loading model...")
+    import gdown
+    gdown.download(id="1yg_r-LzS1uEODFdtGmgB0snOu5-Wka64", output=MODEL_PATH, quiet=False)
+    size = os.path.getsize(MODEL_PATH)
+    print(f"Downloaded file size: {size} bytes")
+    if size < 10000:
+        with open(MODEL_PATH, 'r', errors='replace') as f:
+            print("File contents:", f.read(500))
 model = joblib.load(MODEL_PATH)
 print(f"Model loaded. Classes: {list(model.classes_)}")
  
