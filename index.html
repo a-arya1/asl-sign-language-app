@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ASL Fingerspelling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  /* ── Design Tokens ─────────────────────────────────────────────────────── */
+  :root {
+    --maroon:        #6b1a2a;
+    --maroon-deep:   #4a1020;
+    --maroon-mid:    #8b2a3e;
+    --maroon-light:  #c4667a;
+    --gold:          #c9a84c;
+    --gold-light:    #e8cc84;
+    --gold-dim:      #8a6e30;
+    --cream:         #faf6f0;
+    --cream-mid:     #f0e8de;
+    --cream-dark:    #e0d4c4;
+    --ink:           #1a0a10;
+    --ink-mid:       #3d2030;
+    --ink-light:     #7a5060;
+    --surface:       #fff9f4;
+    --border:        rgba(107,26,42,0.15);
+    --border-gold:   rgba(201,168,76,0.3);
+    --shadow:        0 2px 16px rgba(74,16,32,0.10);
+    --shadow-lg:     0 8px 40px rgba(74,16,32,0.15);
+ 
+    /* 8pt spacing scale */
+    --s1: 8px;
+    --s2: 16px;
+    --s3: 24px;
+    --s4: 32px;
+    --s5: 40px;
+    --s6: 48px;
+    --s8: 64px;
+ 
+    --radius-sm: 4px;
+    --radius:    8px;
+    --radius-lg: 16px;
+ 
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-mono:    'DM Mono', monospace;
+    --font-sans:    'DM Sans', sans-serif;
+ 
+    --transition: 150ms ease;
+  }
+ 
+  /* ── Reset ─────────────────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-font-smoothing: antialiased; }
+ 
+  /* ── Body ──────────────────────────────────────────────────────────────── */
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+ 
+  /* Subtle texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%23faf6f0'/%3E%3Crect width='1' height='1' fill='%23e8d8c8' opacity='0.4'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+ 
+  /* ── Header ────────────────────────────────────────────────────────────── */
+  header {
+    width: 100%;
+    max-width: 1120px;
+    padding: var(--s4) var(--s4) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    position: relative;
+    z-index: 1;
+  }
+ 
+  .header-crest {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+ 
+  .header-text { flex: 1; }
+ 
+  .header-title {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--maroon-deep);
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+ 
+  .header-subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-top: 4px;
+  }
+ 
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: var(--s1);
+    padding: 6px var(--s2);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-light);
+    text-transform: uppercase;
+    transition: var(--transition);
+  }
+ 
+  .status-pip {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cream-dark);
+    transition: var(--transition);
+    flex-shrink: 0;
+  }
+  .status-pill.ready { border-color: var(--border-gold); color: var(--gold-dim); }
+  .status-pill.ready .status-pip { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+  .status-pill.error { border-color: rgba(180,40,60,0.3); color: var(--maroon-light); }
+  .status-pill.error .status-pip { background: var(--maroon-light); }
+ 
+  /* ── Divider ───────────────────────────────────────────────────────────── */
+  .divider {
+    width: 100%;
+    max-width: 1120px;
+    padding: 0 var(--s4);
+    position: relative;
+    z-index: 1;
+    margin-top: var(--s3);
+  }
+ 
+  .divider-line {
+    height: 1px;
+    background: linear-gradient(90deg, var(--maroon-deep), var(--gold), transparent);
+    opacity: 0.4;
+  }
+ 
+  /* ── Main grid ─────────────────────────────────────────────────────────── */
+  .main {
+    width: 100%;
+    max-width: 1120px;
+    padding: var(--s4);
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: var(--s3);
+    position: relative;
+    z-index: 1;
+  }
+ 
+  /* ── Camera panel ──────────────────────────────────────────────────────── */
+  .camera-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+  }
+ 
+  .camera-panel {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--maroon-deep);
+    aspect-ratio: 4/3;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+  }
+ 
+  #video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transform: scaleX(-1);
+  }
+ 
+  #overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    transform: scaleX(-1);
+  }
+ 
+  /* Letter badge */
+  .letter-badge {
+    position: absolute;
+    top: var(--s2);
+    left: var(--s2);
+    min-width: 80px;
+    padding: var(--s1) var(--s2);
+    background: rgba(250,246,240,0.92);
+    border: 1px solid var(--border-gold);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    backdrop-filter: blur(12px);
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 5;
+    box-shadow: var(--shadow);
+  }
+ 
+  .letter-badge.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+ 
+  .letter-glyph {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 600;
+    color: var(--maroon-deep);
+    line-height: 1;
+  }
+ 
+  .letter-conf {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+  }
+ 
+  /* Progress ring */
+  .ring-wrap {
+    position: absolute;
+    bottom: var(--s2);
+    left: var(--s2);
+    width: 40px;
+    height: 40px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 5;
+  }
+  .ring-wrap.visible { opacity: 1; }
+  .ring-svg { transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: rgba(250,246,240,0.15); stroke-width: 3; }
+  .ring-fg { fill: none; stroke: var(--gold); stroke-width: 3; stroke-linecap: round;
+             stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 0.1s; }
+ 
+  /* No hand notice */
+  .no-hand-notice {
+    position: absolute;
+    bottom: var(--s2);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(250,246,240,0.5);
+    white-space: nowrap;
+    transition: opacity 0.3s;
+    z-index: 5;
+  }
+ 
+  /* Loading overlay */
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--maroon-deep);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s3);
+    z-index: 10;
+    transition: opacity 0.6s ease;
+  }
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+ 
+  .loading-ornament {
+    width: 48px;
+    height: 48px;
+    border: 2px solid rgba(201,168,76,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+ 
+  .loading-text {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(201,168,76,0.7);
+  }
+ 
+  /* ── Camera meta bar ───────────────────────────────────────────────────── */
+  .camera-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--s1) var(--s2);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+  }
+ 
+  .camera-meta-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cream-dark);
+    display: inline-block;
+    margin-right: 6px;
+  }
+  .camera-meta-dot.live {
+    background: #c0392b;
+    box-shadow: 0 0 0 2px rgba(192,57,43,0.2);
+    animation: livepulse 2s ease infinite;
+  }
+  @keyframes livepulse {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(192,57,43,0.2); }
+    50%       { box-shadow: 0 0 0 5px rgba(192,57,43,0.05); }
+  }
+ 
+  /* ── Right sidebar ─────────────────────────────────────────────────────── */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s2);
+  }
+ 
+  /* ── Cards ─────────────────────────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+ 
+  .card-header {
+    padding: var(--s2) var(--s3);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: var(--s1);
+    background: linear-gradient(135deg, rgba(107,26,42,0.04), transparent);
+  }
+ 
+  .card-header-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--gold-dim);
+    flex-shrink: 0;
+  }
+ 
+  .card-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+  }
+ 
+  .card-body { padding: var(--s3); }
+ 
+  /* ── Sentence card ─────────────────────────────────────────────────────── */
+  .sentence-field {
+    min-height: 88px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--s2);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--maroon-deep);
+    word-break: break-all;
+    line-height: 1.4;
+    position: relative;
+  }
+ 
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background: var(--gold);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+ 
+  .flash-msg {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--gold-dim);
+    height: 16px;
+    margin-top: var(--s1);
+    opacity: 0;
+    transition: opacity 0.3s;
+    text-transform: uppercase;
+  }
+  .flash-msg.show { opacity: 1; }
+ 
+  /* ── Controls ──────────────────────────────────────────────────────────── */
+  .btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s1);
+  }
+ 
+  .btn {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--ink-mid);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    padding: 10px var(--s2);
+    cursor: pointer;
+    transition: all var(--transition);
+    text-align: center;
+    text-transform: uppercase;
+  }
+ 
+  .btn:hover {
+    background: var(--maroon);
+    border-color: var(--maroon);
+    color: var(--cream);
+  }
+ 
+  .btn:active { transform: scale(0.98); }
+ 
+  .btn .hint {
+    display: block;
+    font-size: 0.5rem;
+    color: var(--ink-light);
+    margin-top: 2px;
+    letter-spacing: 0.08em;
+    transition: color var(--transition);
+  }
+  .btn:hover .hint { color: rgba(250,246,240,0.6); }
+ 
+  .btn.wide { grid-column: span 2; }
+ 
+  .btn.danger:hover {
+    background: var(--maroon-deep);
+    border-color: var(--maroon-deep);
+    color: var(--gold-light);
+  }
+ 
+  /* ── Confidence bars ───────────────────────────────────────────────────── */
+  .conf-rows { display: flex; flex-direction: column; gap: 10px; }
+ 
+  .conf-row {
+    display: flex;
+    align-items: center;
+    gap: var(--s1);
+  }
+ 
+  .conf-ltr {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--maroon);
+    width: 20px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+ 
+  .conf-track {
+    flex: 1;
+    height: 4px;
+    background: var(--cream-mid);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+ 
+  .conf-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--maroon), var(--gold));
+    transition: width 0.12s ease;
+    width: 0%;
+  }
+ 
+  .conf-pct {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--ink-light);
+    width: 28px;
+    text-align: right;
+  }
+ 
+  /* ── Shortcuts ─────────────────────────────────────────────────────────── */
+  .shortcut-list { display: flex; flex-direction: column; gap: var(--s1); }
+ 
+  .shortcut-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    color: var(--ink-light);
+  }
+ 
+  .kbd {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    background: var(--cream-mid);
+    border: 1px solid var(--cream-dark);
+    border-radius: var(--radius-sm);
+    padding: 2px 6px;
+    color: var(--ink-mid);
+    letter-spacing: 0.04em;
+  }
+ 
+  /* ── Footer ────────────────────────────────────────────────────────────── */
+  footer {
+    width: 100%;
+    max-width: 1120px;
+    padding: var(--s3) var(--s4) var(--s4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+  }
+ 
+  .footer-copy {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+  }
+ 
+  .footer-note {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    color: var(--cream-dark);
+    text-align: right;
+  }
+ 
+  /* ── Responsive ────────────────────────────────────────────────────────── */
+  @media (max-width: 800px) {
+    .main { grid-template-columns: 1fr; }
+    .sidebar { display: grid; grid-template-columns: 1fr 1fr; }
+    header { padding: var(--s3) var(--s2) 0; }
+    .main { padding: var(--s2); }
+    footer { padding: var(--s2); flex-direction: column; gap: var(--s1); text-align: center; }
+  }
+</style>
+</head>
+<body>
+ 
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header>
+  <svg class="header-crest" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 4L34 12V28L20 36L6 28V12L20 4Z" fill="none" stroke="#6b1a2a" stroke-width="1.5"/>
+    <path d="M20 8L30 14V26L20 32L10 26V14L20 8Z" fill="none" stroke="#c9a84c" stroke-width="0.75" opacity="0.6"/>
+    <path d="M20 13V27M14 17L26 23M26 17L14 23" stroke="#6b1a2a" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  <div class="header-text">
+    <div class="header-title">ASL Fingerspelling</div>
+    <div class="header-subtitle">Real-time American Sign Language Recognition</div>
+  </div>
+  <div class="status-pill" id="statusPill">
+    <span class="status-pip" id="statusPip"></span>
+    <span id="statusLabel">Initialising</span>
+  </div>
+</header>
+ 
+<div class="divider"><div class="divider-line"></div></div>
+ 
+<!-- ── Main ────────────────────────────────────────────────────────────────── -->
+<div class="main">
+ 
+  <!-- Camera column -->
+  <div class="camera-wrap">
+    <div class="camera-panel">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="overlay"></canvas>
+ 
+      <!-- Letter badge -->
+      <div class="letter-badge" id="letterBadge">
+        <span class="letter-glyph" id="letterGlyph"></span>
+        <span class="letter-conf" id="letterConf"></span>
+      </div>
+ 
+      <!-- Progress ring -->
+      <div class="ring-wrap" id="ringWrap">
+        <svg class="ring-svg" width="40" height="40" viewBox="0 0 40 40">
+          <circle class="ring-bg" cx="20" cy="20" r="17"/>
+          <circle class="ring-fg" id="ringFg" cx="20" cy="20" r="17"/>
+        </svg>
+      </div>
+ 
+      <!-- No hand -->
+      <div class="no-hand-notice" id="noHand">No hand detected</div>
+ 
+      <!-- Loading -->
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-ornament"></div>
+        <div class="loading-text" id="loadingMsg">Initialising</div>
+      </div>
+    </div>
+ 
+    <!-- Meta bar -->
+    <div class="camera-meta">
+      <span><span class="camera-meta-dot" id="liveDot"></span>Camera feed</span>
+      <span id="metaInfo">—</span>
+    </div>
+  </div>
+ 
+  <!-- Sidebar -->
+  <div class="sidebar">
+ 
+    <!-- Sentence -->
+    <div class="card">
+      <div class="card-header">
+        <svg class="card-header-icon" viewBox="0 0 16 16" fill="none">
+          <path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <span class="card-label">Sentence</span>
+      </div>
+      <div class="card-body">
+        <div class="sentence-field">
+          <span id="sentenceText"></span><span class="cursor"></span>
+        </div>
+        <div class="flash-msg" id="flashMsg"></div>
+      </div>
+    </div>
+ 
+    <!-- Controls -->
+    <div class="card">
+      <div class="card-header">
+        <svg class="card-header-icon" viewBox="0 0 16 16" fill="none">
+          <rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+          <rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+          <rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+          <rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+        <span class="card-label">Controls</span>
+      </div>
+      <div class="card-body">
+        <div class="btn-grid">
+          <button class="btn" onclick="addSpace()">
+            Space
+            <span class="hint">Spacebar</span>
+          </button>
+          <button class="btn" onclick="doBackspace()">
+            Delete
+            <span class="hint">Backspace</span>
+          </button>
+          <button class="btn danger wide" onclick="doClear()">
+            Clear All
+            <span class="hint">C</span>
+          </button>
+          <button class="btn wide" onclick="copyText()">
+            Copy to Clipboard
+            <span class="hint">⌘ / Ctrl + C</span>
+          </button>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- Top predictions -->
+    <div class="card">
+      <div class="card-header">
+        <svg class="card-header-icon" viewBox="0 0 16 16" fill="none">
+          <path d="M2 13V8M6 13V5M10 13V9M14 13V3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <span class="card-label">Confidence</span>
+      </div>
+      <div class="card-body">
+        <div class="conf-rows" id="confRows"></div>
+      </div>
+    </div>
+ 
+    <!-- Shortcuts -->
+    <div class="card">
+      <div class="card-header">
+        <svg class="card-header-icon" viewBox="0 0 16 16" fill="none">
+          <rect x="2" y="4" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M5 8h6M8 6v4" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+        <span class="card-label">Shortcuts</span>
+      </div>
+      <div class="card-body">
+        <div class="shortcut-list">
+          <div class="shortcut-row"><span>Add space</span><span class="kbd">Space</span></div>
+          <div class="shortcut-row"><span>Delete last</span><span class="kbd">Backspace</span></div>
+          <div class="shortcut-row"><span>Clear all</span><span class="kbd">C</span></div>
+        </div>
+      </div>
+    </div>
+ 
+  </div>
+</div>
+ 
+<!-- ── Footer ───────────────────────────────────────────────────────────────── -->
+<footer>
+  <span class="footer-copy">ASL Fingerspelling · A–Z Recognition</span>
+  <span class="footer-note">Hold each sign still for ~1 second · Good lighting improves accuracy</span>
+</footer>
+ 
+<!-- ── Script ───────────────────────────────────────────────────────────────── -->
+<script type="module">
+import { FilesetResolver, HandLandmarker } from
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm";
+ 
+// ── Config ────────────────────────────────────────────────────────────────────
+const API_URL          = "http://localhost:8000/predict";
+const RESET_URL        = "http://localhost:8000/reset_wrist";
+const BUFFER_SIZE      = 7;
+const STABLE_THRESHOLD = 8;
+const CONF_THRESHOLD   = 0.50;
+const COOLDOWN_MS      = 1500;
+ 
+// ── DOM ───────────────────────────────────────────────────────────────────────
+const video          = document.getElementById("video");
+const overlayCanvas  = document.getElementById("overlay");
+const ctx            = overlayCanvas.getContext("2d");
+const letterBadge    = document.getElementById("letterBadge");
+const letterGlyph    = document.getElementById("letterGlyph");
+const letterConf     = document.getElementById("letterConf");
+const sentenceText   = document.getElementById("sentenceText");
+const flashMsg       = document.getElementById("flashMsg");
+const noHand         = document.getElementById("noHand");
+const loadingOverlay = document.getElementById("loadingOverlay");
+const loadingMsg     = document.getElementById("loadingMsg");
+const statusPill     = document.getElementById("statusPill");
+const statusPip      = document.getElementById("statusPip");
+const statusLabel    = document.getElementById("statusLabel");
+const ringWrap       = document.getElementById("ringWrap");
+const ringFg         = document.getElementById("ringFg");
+const confRowsEl     = document.getElementById("confRows");
+const liveDot        = document.getElementById("liveDot");
+const metaInfo       = document.getElementById("metaInfo");
+ 
+// ── State ─────────────────────────────────────────────────────────────────────
+let predictionBuffer = [];
+let stableLetter     = "";
+let stableCount      = 0;
+let lastLetter       = "";
+let lastAddedTime    = 0;
+let currentSentence  = [];
+let handLandmarker   = null;
+let lastVideoTime    = -1;
+let lastPredictTime  = 0;
+let confRowNodes     = null;
+let noHandFrames     = 0;
+let frameCount       = 0;
+let lastFpsTime      = performance.now();
+let fps              = 0;
+ 
+// ── Confidence rows ───────────────────────────────────────────────────────────
+function buildConfRows() {
+  confRowsEl.innerHTML = "";
+  confRowNodes = [];
+  for (let i = 0; i < 5; i++) {
+    const row = document.createElement("div");
+    row.className = "conf-row";
+    row.innerHTML = `
+      <span class="conf-ltr">–</span>
+      <div class="conf-track"><div class="conf-fill"></div></div>
+      <span class="conf-pct">0%</span>`;
+    confRowsEl.appendChild(row);
+    confRowNodes.push({
+      ltr:  row.querySelector(".conf-ltr"),
+      fill: row.querySelector(".conf-fill"),
+      pct:  row.querySelector(".conf-pct"),
+    });
+  }
+}
+ 
+function updateConfRows(top) {
+  if (!confRowNodes || !top) return;
+  top.forEach((p, i) => {
+    confRowNodes[i].ltr.textContent  = p.letter || "–";
+    confRowNodes[i].fill.style.width = ((p.confidence || 0) * 100).toFixed(1) + "%";
+    confRowNodes[i].pct.textContent  = ((p.confidence || 0) * 100).toFixed(0) + "%";
+    confRowNodes[i].fill.style.background = i === 0
+      ? "linear-gradient(90deg, var(--maroon), var(--gold))"
+      : "var(--cream-dark)";
+  });
+}
+ 
+// ── Sentence ──────────────────────────────────────────────────────────────────
+function flash(msg) {
+  flashMsg.textContent = msg;
+  flashMsg.classList.add("show");
+  setTimeout(() => flashMsg.classList.remove("show"), 800);
+}
+ 
+function appendLetter(letter) {
+  const now = Date.now();
+  if (letter === lastLetter && now - lastAddedTime < COOLDOWN_MS) return;
+  currentSentence.push(letter);
+  lastLetter    = letter;
+  lastAddedTime = now;
+  render();
+  flash(`+ ${letter}`);
+}
+ 
+function render() { sentenceText.textContent = currentSentence.join(""); }
+ 
+window.addSpace = () => {
+  currentSentence.push(" ");
+  lastLetter = " "; lastAddedTime = Date.now();
+  render(); flash("space");
+};
+window.doBackspace = () => {
+  if (!currentSentence.length) return;
+  const r = currentSentence.pop(); render();
+  flash(`– ${r === " " ? "space" : r}`);
+};
+window.doClear = () => {
+  currentSentence = []; lastLetter = ""; render(); flash("cleared");
+};
+window.copyText = () => {
+  const t = currentSentence.join("");
+  if (t) navigator.clipboard.writeText(t).then(() => flash("copied"));
+};
+ 
+document.addEventListener("keydown", e => {
+  if (e.code === "Space")     { e.preventDefault(); window.addSpace(); }
+  if (e.code === "Backspace") { e.preventDefault(); window.doBackspace(); }
+  if (e.key  === "c" || e.key === "C") window.doClear();
+});
+ 
+// ── Hand skeleton ─────────────────────────────────────────────────────────────
+const CONN = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [0,9],[9,10],[10,11],[11,12],
+  [0,13],[13,14],[14,15],[15,16],
+  [0,17],[17,18],[18,19],[19,20],
+  [5,9],[9,13],[13,17]
+];
+ 
+function drawHand(lms) {
+  const cW = overlayCanvas.width;
+  const cH = overlayCanvas.height;
+  const vW = video.videoWidth;
+  const vH = video.videoHeight;
+
+  // Calculate how object-fit:cover scales and offsets the video
+  const scale = Math.max(cW / vW, cH / vH);
+  const drawW = vW * scale;
+  const drawH = vH * scale;
+  const offsetX = (cW - drawW) / 2;
+  const offsetY = (cH - drawH) / 2;
+
+  function lmX(lm) { return offsetX + lm.x * drawW; }
+  function lmY(lm) { return offsetY + lm.y * drawH; }
+
+  ctx.strokeStyle = "rgba(201,168,76,0.7)";
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+
+  for (const [a, b] of CONN) {
+    ctx.beginPath();
+    ctx.moveTo(lmX(lms[a]), lmY(lms[a]));
+    ctx.lineTo(lmX(lms[b]), lmY(lms[b]));
+    ctx.stroke();
+  }
+
+  for (let i = 0; i < lms.length; i++) {
+    const x = lmX(lms[i]);
+    const y = lmY(lms[i]);
+    const r = [4,8,12,16,20].includes(i) ? 6 : 4;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = i === 0
+      ? "rgba(201,168,76,1)"
+      : [4,8,12,16,20].includes(i)
+        ? "rgba(255,255,255,1)"
+        : "rgba(255,255,255,0.85)";
+    ctx.fill();
+  }
+}
+ 
+// ── API ───────────────────────────────────────────────────────────────────────
+async function getPrediction(hand) {
+  const landmarks = [], landmarks_2d = [];
+  for (const lm of hand) {
+    landmarks.push(lm.x, lm.y, lm.z);
+    landmarks_2d.push([lm.x, lm.y]);
+  }
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ landmarks, landmarks_2d })
+    });
+    return await res.json();
+  } catch {
+    return { letter: "", confidence: 0, top_predictions: [], dtw_letter: null };
+  }
+}
+ 
+// ── FPS tracking ──────────────────────────────────────────────────────────────
+function trackFps() {
+  frameCount++;
+  const now = performance.now();
+  if (now - lastFpsTime >= 1000) {
+    fps = frameCount;
+    frameCount = 0;
+    lastFpsTime = now;
+    metaInfo.textContent = `${fps} fps · ${video.videoWidth}×${video.videoHeight}`;
+  }
+}
+ 
+// ── Main loop ─────────────────────────────────────────────────────────────────
+async function predictLoop() {
+  if (!handLandmarker) { requestAnimationFrame(predictLoop); return; }
+  if (video.readyState < 2) { requestAnimationFrame(predictLoop); return; }
+ 
+  const rect = overlayCanvas.getBoundingClientRect();
+overlayCanvas.width  = Math.round(rect.width);
+overlayCanvas.height = Math.round(rect.height);
+ 
+  if (video.currentTime === lastVideoTime) { requestAnimationFrame(predictLoop); return; }
+  lastVideoTime = video.currentTime;
+  trackFps();
+ 
+  ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+ 
+  const results = handLandmarker.detectForVideo(video, performance.now());
+  const hands   = results.landmarks;
+ 
+  if (!hands || hands.length === 0) {
+    noHandFrames++;
+    noHand.style.opacity = "1";
+    letterBadge.classList.remove("visible");
+    ringWrap.classList.remove("visible");
+    stableLetter = ""; stableCount = 0; predictionBuffer = [];
+    if (noHandFrames === 10) fetch(RESET_URL, { method: "POST" }).catch(() => {});
+    requestAnimationFrame(predictLoop);
+    return;
+  }
+ 
+  noHandFrames = 0;
+  noHand.style.opacity = "0";
+  const hand = hands[0];
+  drawHand(hand);
+ 
+  const now = performance.now();
+  if (now - lastPredictTime > 80) {
+    lastPredictTime = now;
+    const { letter, confidence, top_predictions, dtw_letter } = await getPrediction(hand);
+ 
+    if (dtw_letter) {
+      appendLetter(dtw_letter);
+      stableLetter = ""; stableCount = 0; predictionBuffer = [];
+      requestAnimationFrame(predictLoop);
+      return;
+    }
+ 
+    if (top_predictions?.length) updateConfRows(top_predictions);
+ 
+    if (letter) {
+      predictionBuffer.push(letter);
+      if (predictionBuffer.length > BUFFER_SIZE) predictionBuffer.shift();
+    }
+ 
+    const counts = {};
+    for (const l of predictionBuffer) counts[l] = (counts[l] || 0) + 1;
+    const topEntry  = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    const topLetter = topEntry?.[0] || "";
+    const topCount  = topEntry?.[1] || 0;
+    const confident = topCount >= Math.ceil(BUFFER_SIZE / 2) && confidence > CONF_THRESHOLD;
+ 
+    if (topLetter && confident) {
+      letterGlyph.textContent = topLetter;
+      letterConf.textContent  = Math.round(confidence * 100) + "% conf";
+      letterBadge.classList.add("visible");
+ 
+      if (topLetter === stableLetter) stableCount++;
+      else { stableLetter = topLetter; stableCount = 1; }
+ 
+      const circ = 2 * Math.PI * 17;
+      ringFg.style.strokeDasharray  = circ;
+      ringFg.style.strokeDashoffset = circ * (1 - stableCount / STABLE_THRESHOLD);
+      ringWrap.classList.add("visible");
+ 
+      if (stableCount >= STABLE_THRESHOLD) {
+        appendLetter(topLetter);
+        stableCount = 0;
+      }
+    } else {
+      stableLetter = ""; stableCount = 0;
+      letterBadge.classList.remove("visible");
+      ringWrap.classList.remove("visible");
+    }
+  }
+ 
+  requestAnimationFrame(predictLoop);
+}
+ 
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    loadingMsg.textContent = "Requesting camera access";
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" }
+    });
+    video.srcObject = stream;
+    await new Promise(r => video.onloadedmetadata = r);
+    await video.play();
+    liveDot.classList.add("live");
+ 
+    loadingMsg.textContent = "Loading hand detection model";
+    const vision = await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm"
+    );
+    handLandmarker = await HandLandmarker.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+        delegate: "GPU"
+      },
+      runningMode: "VIDEO",
+      numHands: 1,
+      minHandDetectionConfidence: 0.6,
+      minHandPresenceConfidence: 0.6,
+      minTrackingConfidence: 0.5
+    });
+ 
+    buildConfRows();
+ 
+    loadingOverlay.classList.add("hidden");
+    statusPill.classList.add("ready");
+    statusLabel.textContent = "Live";
+ 
+    requestAnimationFrame(predictLoop);
+ 
+  } catch (err) {
+    loadingMsg.textContent = err.message;
+    statusPill.classList.add("error");
+    statusLabel.textContent = "Error";
+    console.error(err);
+  }
+}
+ 
+init();
+</script>
+</body>
+</html>
+ 
