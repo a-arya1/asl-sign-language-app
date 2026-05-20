@@ -24,8 +24,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
  
+import os
+import urllib.request
+
+MODEL_PATH = "hand_gesture_model.joblib"
+if not os.path.exists(MODEL_PATH):
+    print("Downloading model from Google Drive...")
+    url = "https://drive.google.com/uc?export=download&id=1yg_r-LzS1uEODFdtGmgB0snOu5-Wka64"
+    urllib.request.urlretrieve(url, MODEL_PATH)
+
 print("Loading model...")
-model = joblib.load("hand_gesture_model.joblib")
+model = joblib.load(MODEL_PATH)
 print(f"Model loaded. Classes: {list(model.classes_)}")
  
 # Load J/Z templates
