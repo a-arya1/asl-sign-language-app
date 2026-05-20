@@ -32,11 +32,7 @@ if not os.path.exists(MODEL_PATH):
     print("Downloading model from Google Drive...")
     import gdown
     gdown.download(id="1yg_r-LzS1uEODFdtGmgB0snOu5-Wka64", output=MODEL_PATH, quiet=False)
-    size = os.path.getsize(MODEL_PATH)
-    print(f"Downloaded file size: {size} bytes")
-    if size < 10000:
-        with open(MODEL_PATH, 'r', errors='replace') as f:
-            print("File contents:", f.read(500))
+    print("Download complete.")
 model = joblib.load(MODEL_PATH)
 print(f"Model loaded. Classes: {list(model.classes_)}")
  
