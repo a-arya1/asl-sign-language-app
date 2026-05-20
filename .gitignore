@@ -1,4 +1,5 @@
 venv/
+venv39/
 archive/
 asl_alphabet_train/
 asl_alphabet_test/
@@ -9,5 +10,4 @@ __pycache__/
 .DS_Store
 *.pkl
 hand_gesture_model.joblib
-/Users/abhasharyal/Downloads/SignAlphaSet/
-
+dataset/
