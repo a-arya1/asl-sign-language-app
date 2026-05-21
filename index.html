@@ -996,6 +996,7 @@ let frameCount       = 0;
 let lastFpsTime      = performance.now();
 let fps              = 0;
 
+// tab switching handled by global switchTab script below
 
 // ── Confidence rows ───────────────────────────────────────────────────────────
 function buildConfRows() {
@@ -1283,7 +1284,7 @@ LETTERS.forEach(l => {
   pickerEl.appendChild(btn);
 });
 
-async function initContributeCamera() {
+window.initContributeCamera = async function() {
   if (contributeInited) return;
   contributeInited = true;
   try {
@@ -1421,7 +1422,11 @@ function switchTab(name) {
   document.querySelectorAll(".tab-panel").forEach(function(p) {
     p.classList.toggle("active", p.id === "tab-" + name);
   });
-  if (name === "contribute" && window.initContributeCamera) window.initContributeCamera();
+  if (name === "contribute") {
+    setTimeout(function() {
+      if (window.initContributeCamera) window.initContributeCamera();
+    }, 50);
+  }
 }
 </script>
 </body>
