@@ -1423,5 +1423,16 @@ window.submitContribution = async function() {
   }
 };
 </script>
+<script>
+function switchTab(name) {
+  document.querySelectorAll(".tab-btn").forEach(function(b) {
+    b.classList.toggle("active", b.getAttribute("onclick").includes("'" + name + "'"));
+  });
+  document.querySelectorAll(".tab-panel").forEach(function(p) {
+    p.classList.toggle("active", p.id === "tab-" + name);
+  });
+  if (name === "contribute" && window.initContributeCamera) window.initContributeCamera();
+}
+</script>
 </body>
 </html>
