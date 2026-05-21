@@ -998,9 +998,8 @@ let fps              = 0;
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
 window.switchTab = function(name) {
-  document.querySelectorAll(".tab-btn").forEach((b, i) => {
-    const tabs = ["recogniser","contribute","about"];
-    b.classList.toggle("active", tabs[i] === name);
+  document.querySelectorAll(".tab-btn").forEach(b => {
+    b.classList.toggle("active", b.getAttribute("onclick").includes("'" + name + "'"));
   });
   document.querySelectorAll(".tab-panel").forEach(p => {
     p.classList.toggle("active", p.id === "tab-" + name);
