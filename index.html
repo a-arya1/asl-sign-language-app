@@ -741,10 +741,10 @@ import { FilesetResolver, HandLandmarker } from
 // ── Config ────────────────────────────────────────────────────────────────────
 const API_URL          = "https://asl-sign-language-app.onrender.com/predict";
 const RESET_URL        = "https://asl-sign-language-app.onrender.com/reset_wrist";
-const BUFFER_SIZE      = 7;
-const STABLE_THRESHOLD = 8;
+const BUFFER_SIZE      = 5;
+const STABLE_THRESHOLD = 5;
 const CONF_THRESHOLD   = 0.50;
-const COOLDOWN_MS      = 1500;
+const COOLDOWN_MS      = 1000;
  
 // ── DOM ───────────────────────────────────────────────────────────────────────
 const video          = document.getElementById("video");
@@ -976,7 +976,7 @@ overlayCanvas.height = Math.round(rect.height);
   drawHand(hand);
  
   const now = performance.now();
-  if (now - lastPredictTime > 80) {
+  if (now - lastPredictTime > 50) {
     lastPredictTime = now;
     const { letter, confidence, top_predictions, dtw_letter } = await getPrediction(hand);
  
