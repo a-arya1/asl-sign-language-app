@@ -146,10 +146,22 @@ python processdata.py
 **3. Retrain the model**
 
 ```bash
-python model.py
+python model.py --promote
 ```
 
+The training script also reads accepted website submissions from `contributions/pending/`
+and `contributions/training_rows.csv`. It writes `training_metrics.json` and refuses to
+promote a model if balanced accuracy drops below the configured gate.
+
 > **Important:** Any time `normalize_data.py` is changed, all three steps above must be re-run in order to keep the pipeline in sync.
+
+### Website Contributions
+
+Accepted website submissions are saved under `contributions/pending/<letter>/` and are
+added to an adaptive contribution memory immediately. That means a user-submitted sample
+can improve future predictions during the current server run without live-replacing the
+base Random Forest model. For a permanent base-model update, run `python model.py --promote`
+locally and upload the new `hand_gesture_model.joblib` to the model hosting location.
 
 ---
 

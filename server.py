@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 import json
+import csv
 import uuid
  
 app = FastAPI()
@@ -33,7 +34,11 @@ import os
 
 MODEL_PATH = "hand_gesture_model.joblib"
 CONTRIBUTIONS_DIR = Path("contributions/pending")
+CONTRIBUTION_ROWS_PATH = Path("contributions/training_rows.csv")
 CONTRIBUTE_CONF_THRESHOLD = 0.60
+PREDICTION_SMOOTHING_FRAMES = 5
+ADAPTIVE_MAX_DISTANCE = 0.42
+ADAPTIVE_BLEND_CONFIDENCE = 0.80
 if not os.path.exists(MODEL_PATH):
     print("Downloading model from Google Drive...")
     import gdown
@@ -43,12 +48,23 @@ model = joblib.load(MODEL_PATH)
 print(f"Model loaded. Classes: {list(model.classes_)}")
  
 # Load J/Z templates
+def normalize_motion_path(path):
+    path = np.asarray(path, dtype=float)
+    if len(path) == 0:
+        return path
+    path = path - path[0]
+    scale = np.max(np.ptp(path, axis=0))
+    if scale > 1e-6:
+        path = path / scale
+    return path
+
+
 def load_templates(letter, count=10):
     templates = []
     for i in range(count):
         try:
             t = np.load(f"templates/{letter}/template_{i}.npy")
-            templates.append(t)
+            templates.append(normalize_motion_path(t))
         except FileNotFoundError:
             pass
     print(f"Loaded {len(templates)} templates for {letter}")
@@ -59,9 +75,13 @@ ztemplates = load_templates("Z")
  
 # Per-client state (single user assumed for local use)
 wrist_buffer = deque(maxlen=30)
+prob_buffer = deque(maxlen=PREDICTION_SMOOTHING_FRAMES)
+contribution_examples = []
 dtw_cooldown = 0
 DTW_COOLDOWN_SECS = 2.0
-DTW_THRESH = 0.15
+DTW_THRESH = 1.10
+DTW_MARGIN = 0.15
+DTW_MIN_MOVEMENT = 0.08
  
  
 class LandmarkData(BaseModel):
@@ -69,8 +89,96 @@ class LandmarkData(BaseModel):
     landmarks_2d: list    # [[x,y] ...] 21 pairs
  
 
-def build_prediction(landmarks, landmarks_2d, track_wrist=True):
-    global wrist_buffer
+def scaled_feature_vector(features):
+    values = np.asarray(features, dtype=float)
+    if values.shape[0] >= 72:
+        values = values.copy()
+        values[63:72] = values[63:72] / 180.0
+    return values
+
+
+def load_contribution_examples():
+    examples = []
+    for metadata_path in CONTRIBUTIONS_DIR.glob("*/*.json"):
+        try:
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            features = metadata.get("features")
+            letter = metadata.get("letter")
+            if letter and features and len(features) == 72:
+                examples.append({
+                    "letter": letter,
+                    "features": scaled_feature_vector(features),
+                    "path": str(metadata_path),
+                })
+        except (OSError, json.JSONDecodeError):
+            continue
+    return examples
+
+
+def nearest_contribution(features):
+    if not contribution_examples:
+        return None
+    current = scaled_feature_vector(features)
+    best = None
+    for example in contribution_examples:
+        distance = float(np.linalg.norm(current - example["features"]) / np.sqrt(len(current)))
+        if best is None or distance < best["distance"]:
+            best = {**example, "distance": distance}
+    return best
+
+
+def apply_adaptive_prediction(letter, confidence, top_predictions, features):
+    nearest = nearest_contribution(features)
+    if not nearest or nearest["distance"] > ADAPTIVE_MAX_DISTANCE:
+        return letter, confidence, top_predictions, None
+    adaptive_letter = nearest["letter"]
+    top_letters = [p["letter"] for p in top_predictions[:3]]
+    if confidence >= ADAPTIVE_BLEND_CONFIDENCE and letter and letter != adaptive_letter:
+        return letter, confidence, top_predictions, nearest
+    if letter and adaptive_letter not in top_letters and letter != adaptive_letter:
+        return letter, confidence, top_predictions, nearest
+
+    boosted_confidence = max(confidence, ADAPTIVE_BLEND_CONFIDENCE - nearest["distance"] * 0.25)
+    updated_top = [{"letter": adaptive_letter, "confidence": boosted_confidence}]
+    for item in top_predictions:
+        if item["letter"] != adaptive_letter:
+            updated_top.append(item)
+        if len(updated_top) == 5:
+            break
+    return adaptive_letter, boosted_confidence, updated_top, nearest
+
+
+def append_training_row(features, letter):
+    CONTRIBUTION_ROWS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    write_header = not CONTRIBUTION_ROWS_PATH.exists()
+    with CONTRIBUTION_ROWS_PATH.open("a", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        if write_header:
+            header = []
+            for i in range(21):
+                header += [f"x{i}", f"y{i}", f"z{i}"]
+            header += [
+                "thumb_curl",
+                "idx_pip",
+                "idx_dip",
+                "mid_pip",
+                "mid_dip",
+                "ring_pip",
+                "ring_dip",
+                "pinky_pip",
+                "pinky_dip",
+                "Letter Label",
+            ]
+            writer.writerow(header)
+        writer.writerow(list(features) + [letter])
+
+
+contribution_examples = load_contribution_examples()
+print(f"Loaded {len(contribution_examples)} contribution examples")
+
+
+def build_prediction(landmarks, landmarks_2d, track_wrist=True, smooth=True, adaptive=True):
+    global wrist_buffer, prob_buffer
 
     if len(landmarks) != 63:
         raise ValueError("Expected 63 landmark values.")
@@ -83,6 +191,10 @@ def build_prediction(landmarks, landmarks_2d, track_wrist=True):
     feature_row = np.array(features).reshape(1, -1)
 
     probs = model.predict_proba(feature_row)[0]
+    if smooth:
+        prob_buffer.append(probs)
+        probs = np.mean(prob_buffer, axis=0)
+
     confidence = float(max(probs))
     letter = str(model.classes_[np.argmax(probs)]) if confidence > 0.50 else ""
 
@@ -116,6 +228,15 @@ def build_prediction(landmarks, landmarks_2d, track_wrist=True):
         for i in top_indices
     ]
 
+    adaptive_match = None
+    if adaptive:
+        letter, confidence, top_predictions, adaptive_match = apply_adaptive_prediction(
+            letter,
+            confidence,
+            top_predictions,
+            features,
+        )
+
     return {
         "letter": letter,
         "confidence": confidence,
@@ -124,6 +245,7 @@ def build_prediction(landmarks, landmarks_2d, track_wrist=True):
         "normalized": normalized,
         "angle_features": angle_feats,
         "features": features,
+        "adaptive_match": adaptive_match,
     }
 
  
@@ -134,7 +256,11 @@ def check_dtw():
     if time.time() < dtw_cooldown:
         return None
  
-    wp = np.array(wrist_buffer)
+    raw_wp = np.array(wrist_buffer)
+    movement = np.sum(np.linalg.norm(np.diff(raw_wp, axis=0), axis=1))
+    if movement < DTW_MIN_MOVEMENT:
+        return None
+    wp = normalize_motion_path(raw_wp)
 
     jdists = []
     for t in jtemplates:
@@ -150,9 +276,10 @@ def check_dtw():
  
     best_j = min(jdists) if jdists else float("inf")
     best_z = min(zdists) if zdists else float("inf")
-    best   = min(best_j, best_z)
+    best = min(best_j, best_z)
+    second = max(best_j, best_z)
  
-    if best < DTW_THRESH:
+    if best < DTW_THRESH and (second - best) >= DTW_MARGIN:
         dtw_cooldown = time.time() + DTW_COOLDOWN_SECS
         return "J" if best_j < best_z else "Z"
     return None
@@ -188,7 +315,13 @@ async def contribute(
     try:
         parsed_landmarks = json.loads(landmarks)
         parsed_landmarks_2d = json.loads(landmarks_2d)
-        result = build_prediction(parsed_landmarks, parsed_landmarks_2d, track_wrist=False)
+        result = build_prediction(
+            parsed_landmarks,
+            parsed_landmarks_2d,
+            track_wrist=False,
+            smooth=False,
+            adaptive=False,
+        )
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Could not read contribution landmarks: {exc}") from exc
 
@@ -234,9 +367,17 @@ async def contribute(
     }
     metadata_path = letter_dir / f"{contribution_id}.json"
     metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    append_training_row(result["features"], selected_letter)
+    contribution_examples.append({
+        "letter": selected_letter,
+        "features": scaled_feature_vector(result["features"]),
+        "path": str(metadata_path),
+    })
 
     return {
         "saved": True,
+        "trained": True,
+        "training_mode": "adaptive_contribution_memory",
         "id": contribution_id,
         "letter": selected_letter,
         "predicted_letter": predicted_letter,
@@ -249,9 +390,19 @@ async def contribute(
 def reset_wrist():
     """Call this when no hand is detected to clear wrist buffer."""
     wrist_buffer.clear()
+    prob_buffer.clear()
     return {"status": "ok"}
  
  
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "contribution_examples": len(contribution_examples)}
+
+
+@app.get("/training_status")
+def training_status():
+    return {
+        "adaptive_examples": len(contribution_examples),
+        "training_rows_file": str(CONTRIBUTION_ROWS_PATH),
+        "training_rows_file_exists": CONTRIBUTION_ROWS_PATH.exists(),
+    }

@@ -11,3 +11,6 @@ __pycache__/
 *.pkl
 hand_gesture_model.joblib
 dataset/
+contributions/
+hand_gesture_model.candidate.joblib
+training_metrics.json

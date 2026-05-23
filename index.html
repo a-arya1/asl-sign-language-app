@@ -882,7 +882,8 @@ window.submitContribution = async function() {
     const res=await fetch(CONTRIBUTE_URL,{method:"POST",body:formData});
     const data=await res.json(); const predicted=data.predicted_letter || ""; const conf=Math.round((data.confidence||0)*100);
     if (res.ok && data.saved) {
-      setResult(`✓ Verified as "${selectedLetter}" (${conf}% confidence) and saved. Thank you!`,"success");
+      const trainedText = data.trained ? "saved and learned" : "saved";
+      setResult(`✓ Verified as "${selectedLetter}" (${conf}% confidence), ${trainedText}. Thank you!`,"success");
       currentImageBlob = null;
     } else {
       setResult(data.detail || `✗ Model predicted "${predicted}" (${conf}%) instead of "${selectedLetter}". Try better lighting or a clearer angle.`,"error");
