@@ -574,7 +574,7 @@ const RESET_URL = "https://asl-sign-language-app.onrender.com/reset_wrist";
 const CONTRIBUTE_URL = "https://asl-sign-language-app.onrender.com/contribute";
 const BUFFER_SIZE      = 3;
 const STABLE_THRESHOLD = 3;
-const CONF_THRESHOLD   = 0.50;
+const CONF_THRESHOLD   = 0.45;
 const COOLDOWN_MS      = 800;
 const PREDICT_INTERVAL_MS = 80;
 
@@ -605,6 +605,7 @@ let liveHasHand = false, imageDetectionActive = false;
 let confRowNodes = null, noHandFrames = 0;
 let frameCount = 0, lastFpsTime = performance.now(), fps = 0;
 let overlayWidth = 0, overlayHeight = 0;
+let wristPath = [];
 
 function buildConfRows() {
   confRowsEl.innerHTML = ""; confRowNodes = [];
@@ -647,6 +648,7 @@ document.addEventListener("keydown", e => {
 });
 
 const CONN = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[0,9],[9,10],[10,11],[11,12],[0,13],[13,14],[14,15],[15,16],[0,17],[17,18],[18,19],[19,20],[5,9],[9,13],[13,17]];
+const OUTLINE = [0,1,2,3,4,8,12,16,20,19,18,17,0];
 
 function drawHand(lms) {
   const cW = overlayCanvas.width, cH = overlayCanvas.height;
@@ -656,6 +658,20 @@ function drawHand(lms) {
   const offsetX = (cW-drawW)/2, offsetY = (cH-drawH)/2;
   const lmX = lm => offsetX + lm.x*drawW;
   const lmY = lm => offsetY + lm.y*drawH;
+  ctx.save();
+  ctx.strokeStyle = "rgba(185,28,28,0.95)";
+  ctx.lineWidth = 5;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.shadowColor = "rgba(185,28,28,0.45)";
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  OUTLINE.forEach((idx, i) => {
+    const x = lmX(lms[idx]), y = lmY(lms[idx]);
+    if (i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  ctx.restore();
   ctx.strokeStyle = "rgba(201,168,76,0.7)"; ctx.lineWidth = 2; ctx.lineCap = "round";
   for (const [a,b] of CONN) { ctx.beginPath(); ctx.moveTo(lmX(lms[a]),lmY(lms[a])); ctx.lineTo(lmX(lms[b]),lmY(lms[b])); ctx.stroke(); }
   for (let i = 0; i < lms.length; i++) {
@@ -670,7 +686,7 @@ async function getPrediction(hand) {
   const landmarks = [], landmarks_2d = [];
   for (const lm of hand) { landmarks.push(lm.x,lm.y,lm.z); landmarks_2d.push([lm.x,lm.y]); }
   try {
-    const res = await fetch(API_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({landmarks,landmarks_2d}) });
+    const res = await fetch(API_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({landmarks,landmarks_2d,wrist_path:wristPath}) });
     return await res.json();
   } catch { return {letter:"",confidence:0,top_predictions:[],dtw_letter:null}; }
 }
@@ -705,12 +721,27 @@ function resetLivePredictionState() {
   hideLivePredictionState();
 }
 
+function showMotionLetter(letter) {
+  letterGlyph.textContent = letter;
+  letterConf.textContent = "motion";
+  letterBadge.classList.add("visible");
+  ringFg.style.strokeDasharray = 2*Math.PI*17;
+  ringFg.style.strokeDashoffset = 0;
+  ringWrap.classList.add("visible");
+  appendLetter(letter);
+  setTimeout(() => {
+    if (letterGlyph.textContent === letter) hideLivePredictionState();
+  }, 650);
+}
+
 function handlePredictionResult(data) {
   if (!liveHasHand) return;
   const {letter,confidence,top_predictions,dtw_letter} = data || {};
   if (dtw_letter) {
-    appendLetter(dtw_letter);
-    resetLivePredictionState();
+    predictionBuffer = [];
+    stableLetter = "";
+    stableCount = 0;
+    showMotionLetter(dtw_letter);
     return;
   }
   if (top_predictions?.length) updateConfRows(top_predictions);
@@ -757,6 +788,7 @@ function predictLoop() {
   const hands = results.landmarks;
   if (!hands || hands.length === 0) {
     liveHasHand = false;
+    wristPath = [];
     noHandFrames++; noHand.style.opacity = "1";
     resetLivePredictionState();
     if (noHandFrames === 10 && !pendingResetWrist) {
@@ -767,6 +799,8 @@ function predictLoop() {
   }
   liveHasHand = true; noHandFrames = 0; pendingResetWrist = false; noHand.style.opacity = "0";
   const hand = hands[0]; drawHand(hand);
+  wristPath.push([hand[0].x, hand[0].y]);
+  if (wristPath.length > 30) wristPath.shift();
   maybeSendPrediction(hand);
   requestAnimationFrame(predictLoop);
 }

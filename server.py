@@ -20,6 +20,7 @@ from typing import Optional
 import json
 import csv
 import uuid
+import glob
  
 app = FastAPI()
  
@@ -35,7 +36,8 @@ import os
 MODEL_PATH = "hand_gesture_model.joblib"
 CONTRIBUTIONS_DIR = Path("contributions/pending")
 CONTRIBUTION_ROWS_PATH = Path("contributions/training_rows.csv")
-CONTRIBUTE_CONF_THRESHOLD = 0.60
+PREDICT_CONF_THRESHOLD = 0.45
+CONTRIBUTE_CONF_THRESHOLD = 0.50
 PREDICTION_SMOOTHING_FRAMES = 5
 ADAPTIVE_MAX_DISTANCE = 0.42
 ADAPTIVE_BLEND_CONFIDENCE = 0.80
@@ -59,13 +61,13 @@ def normalize_motion_path(path):
     return path
 
 
-def load_templates(letter, count=10):
+def load_templates(letter):
     templates = []
-    for i in range(count):
+    for path in sorted(glob.glob(f"templates/{letter}/*.npy")):
         try:
-            t = np.load(f"templates/{letter}/template_{i}.npy")
+            t = np.load(path)
             templates.append(normalize_motion_path(t))
-        except FileNotFoundError:
+        except (OSError, ValueError):
             pass
     print(f"Loaded {len(templates)} templates for {letter}")
     return templates
@@ -79,14 +81,16 @@ prob_buffer = deque(maxlen=PREDICTION_SMOOTHING_FRAMES)
 contribution_examples = []
 dtw_cooldown = 0
 DTW_COOLDOWN_SECS = 2.0
-DTW_THRESH = 1.10
-DTW_MARGIN = 0.15
-DTW_MIN_MOVEMENT = 0.08
+DTW_READY_FRAMES = 24
+DTW_THRESH = 1.25
+DTW_MARGIN = 0.05
+DTW_MIN_MOVEMENT = 0.05
  
  
 class LandmarkData(BaseModel):
     landmarks: list       # flat [x,y,z ...] 63 values
     landmarks_2d: list    # [[x,y] ...] 21 pairs
+    wrist_path: Optional[list] = None
  
 
 def scaled_feature_vector(features):
@@ -177,7 +181,7 @@ contribution_examples = load_contribution_examples()
 print(f"Loaded {len(contribution_examples)} contribution examples")
 
 
-def build_prediction(landmarks, landmarks_2d, track_wrist=True, smooth=True, adaptive=True):
+def build_prediction(landmarks, landmarks_2d, wrist_path=None, track_wrist=True, smooth=True, adaptive=True):
     global wrist_buffer, prob_buffer
 
     if len(landmarks) != 63:
@@ -196,14 +200,18 @@ def build_prediction(landmarks, landmarks_2d, track_wrist=True, smooth=True, ada
         probs = np.mean(prob_buffer, axis=0)
 
     confidence = float(max(probs))
-    letter = str(model.classes_[np.argmax(probs)]) if confidence > 0.50 else ""
+    letter = str(model.classes_[np.argmax(probs)]) if confidence > PREDICT_CONF_THRESHOLD else ""
 
     dtw_letter = None
     if track_wrist:
-        # Track wrist for J/Z DTW
-        wrist_x = landmarks_2d[0][0]
-        wrist_y = landmarks_2d[0][1]
-        wrist_buffer.append([wrist_x, wrist_y])
+        if wrist_path and len(wrist_path) >= DTW_READY_FRAMES:
+            wrist_buffer.clear()
+            wrist_buffer.extend(wrist_path[-wrist_buffer.maxlen:])
+        else:
+            # Track wrist for J/Z DTW
+            wrist_x = landmarks_2d[0][0]
+            wrist_y = landmarks_2d[0][1]
+            wrist_buffer.append([wrist_x, wrist_y])
 
         # Movement guard — suppress I if hand is moving
         hand_is_moving = False
@@ -251,7 +259,7 @@ def build_prediction(landmarks, landmarks_2d, track_wrist=True, smooth=True, ada
  
 def check_dtw():
     global dtw_cooldown
-    if len(wrist_buffer) < 30:
+    if len(wrist_buffer) < DTW_READY_FRAMES:
         return None
     if time.time() < dtw_cooldown:
         return None
@@ -288,7 +296,7 @@ def check_dtw():
 @app.post("/predict")
 def predict(data: LandmarkData):
     try:
-        result = build_prediction(data.landmarks, data.landmarks_2d, track_wrist=True)
+        result = build_prediction(data.landmarks, data.landmarks_2d, data.wrist_path, track_wrist=True)
  
         return {
             "letter": result["letter"],
