@@ -569,11 +569,14 @@ import { FilesetResolver, HandLandmarker } from
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm";
 
 const API_URL   = "https://asl-sign-language-app.onrender.com/predict";
+const HEALTH_URL = "https://asl-sign-language-app.onrender.com/health";
 const RESET_URL = "https://asl-sign-language-app.onrender.com/reset_wrist";
+const CONTRIBUTE_URL = "https://asl-sign-language-app.onrender.com/contribute";
 const BUFFER_SIZE      = 3;
 const STABLE_THRESHOLD = 3;
 const CONF_THRESHOLD   = 0.50;
 const COOLDOWN_MS      = 800;
+const PREDICT_INTERVAL_MS = 80;
 
 const video          = document.getElementById("video");
 const overlayCanvas  = document.getElementById("overlay");
@@ -597,8 +600,11 @@ const metaInfo       = document.getElementById("metaInfo");
 let predictionBuffer = [], stableLetter = "", stableCount = 0;
 let lastLetter = "", lastAddedTime = 0, currentSentence = [];
 let handLandmarker = null, lastVideoTime = -1, lastPredictTime = 0;
+let predictInFlight = false, pendingResetWrist = false;
+let liveHasHand = false, imageDetectionActive = false;
 let confRowNodes = null, noHandFrames = 0;
 let frameCount = 0, lastFpsTime = performance.now(), fps = 0;
+let overlayWidth = 0, overlayHeight = 0;
 
 function buildConfRows() {
   confRowsEl.innerHTML = ""; confRowNodes = [];
@@ -669,57 +675,105 @@ async function getPrediction(hand) {
   } catch { return {letter:"",confidence:0,top_predictions:[],dtw_letter:null}; }
 }
 
+function resizeOverlayIfNeeded() {
+  const rect = overlayCanvas.getBoundingClientRect();
+  const nextWidth = Math.round(rect.width);
+  const nextHeight = Math.round(rect.height);
+  if (nextWidth && nextHeight && (nextWidth !== overlayWidth || nextHeight !== overlayHeight)) {
+    overlayWidth = nextWidth;
+    overlayHeight = nextHeight;
+    overlayCanvas.width = nextWidth;
+    overlayCanvas.height = nextHeight;
+  }
+}
+
 function trackFps() {
   frameCount++;
   const now = performance.now();
   if (now - lastFpsTime >= 1000) { fps = frameCount; frameCount = 0; lastFpsTime = now; metaInfo.textContent = `${fps} fps · ${video.videoWidth}×${video.videoHeight}`; }
 }
 
-async function predictLoop() {
+function hideLivePredictionState() {
+  stableLetter = "";
+  stableCount = 0;
+  letterBadge.classList.remove("visible");
+  ringWrap.classList.remove("visible");
+}
+
+function resetLivePredictionState() {
+  predictionBuffer = [];
+  hideLivePredictionState();
+}
+
+function handlePredictionResult(data) {
+  if (!liveHasHand) return;
+  const {letter,confidence,top_predictions,dtw_letter} = data || {};
+  if (dtw_letter) {
+    appendLetter(dtw_letter);
+    resetLivePredictionState();
+    return;
+  }
+  if (top_predictions?.length) updateConfRows(top_predictions);
+  if (letter) {
+    predictionBuffer.push(letter);
+    if (predictionBuffer.length > BUFFER_SIZE) predictionBuffer.shift();
+  }
+  const counts = {};
+  for (const l of predictionBuffer) counts[l] = (counts[l]||0)+1;
+  const topEntry = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  const topLetter = topEntry?.[0]||"", topCount = topEntry?.[1]||0;
+  const confident = topCount >= Math.ceil(BUFFER_SIZE/2) && confidence > CONF_THRESHOLD;
+  if (topLetter && confident) {
+    letterGlyph.textContent = topLetter; letterConf.textContent = Math.round(confidence*100)+"% conf";
+    letterBadge.classList.add("visible");
+    if (topLetter === stableLetter) stableCount++; else { stableLetter=topLetter; stableCount=1; }
+    const circ = 2*Math.PI*17;
+    ringFg.style.strokeDasharray = circ; ringFg.style.strokeDashoffset = circ*(1-stableCount/STABLE_THRESHOLD);
+    ringWrap.classList.add("visible");
+    if (stableCount >= STABLE_THRESHOLD) { appendLetter(topLetter); stableCount=0; }
+  } else {
+    hideLivePredictionState();
+  }
+}
+
+function maybeSendPrediction(hand) {
+  const now = performance.now();
+  if (predictInFlight || now - lastPredictTime < PREDICT_INTERVAL_MS) return;
+  lastPredictTime = now;
+  predictInFlight = true;
+  getPrediction(hand)
+    .then(handlePredictionResult)
+    .finally(() => { predictInFlight = false; });
+}
+
+function predictLoop() {
+  if (imageDetectionActive) { requestAnimationFrame(predictLoop); return; }
   if (!handLandmarker || video.readyState < 2) { requestAnimationFrame(predictLoop); return; }
-  const rect = overlayCanvas.getBoundingClientRect();
-  overlayCanvas.width = Math.round(rect.width); overlayCanvas.height = Math.round(rect.height);
+  resizeOverlayIfNeeded();
   if (video.currentTime === lastVideoTime) { requestAnimationFrame(predictLoop); return; }
   lastVideoTime = video.currentTime; trackFps();
   ctx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
   const results = handLandmarker.detectForVideo(video, performance.now());
   const hands = results.landmarks;
   if (!hands || hands.length === 0) {
+    liveHasHand = false;
     noHandFrames++; noHand.style.opacity = "1";
-    letterBadge.classList.remove("visible"); ringWrap.classList.remove("visible");
-    stableLetter = ""; stableCount = 0; predictionBuffer = [];
-    if (noHandFrames === 10) fetch(RESET_URL,{method:"POST"}).catch(()=>{});
+    resetLivePredictionState();
+    if (noHandFrames === 10 && !pendingResetWrist) {
+      pendingResetWrist = true;
+      fetch(RESET_URL,{method:"POST"}).catch(()=>{}).finally(()=>{ pendingResetWrist = false; });
+    }
     requestAnimationFrame(predictLoop); return;
   }
-  noHandFrames = 0; noHand.style.opacity = "0";
+  liveHasHand = true; noHandFrames = 0; pendingResetWrist = false; noHand.style.opacity = "0";
   const hand = hands[0]; drawHand(hand);
-  const now = performance.now();
-  if (now - lastPredictTime > 30) {
-    lastPredictTime = now;
-    const {letter,confidence,top_predictions,dtw_letter} = await getPrediction(hand);
-    if (dtw_letter) { appendLetter(dtw_letter); stableLetter=""; stableCount=0; predictionBuffer=[]; requestAnimationFrame(predictLoop); return; }
-    if (top_predictions?.length) updateConfRows(top_predictions);
-    if (letter) { predictionBuffer.push(letter); if (predictionBuffer.length > BUFFER_SIZE) predictionBuffer.shift(); }
-    const counts = {};
-    for (const l of predictionBuffer) counts[l] = (counts[l]||0)+1;
-    const topEntry = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
-    const topLetter = topEntry?.[0]||"", topCount = topEntry?.[1]||0;
-    const confident = topCount >= Math.ceil(BUFFER_SIZE/2) && confidence > CONF_THRESHOLD;
-    if (topLetter && confident) {
-      letterGlyph.textContent = topLetter; letterConf.textContent = Math.round(confidence*100)+"% conf";
-      letterBadge.classList.add("visible");
-      if (topLetter === stableLetter) stableCount++; else { stableLetter=topLetter; stableCount=1; }
-      const circ = 2*Math.PI*17;
-      ringFg.style.strokeDasharray = circ; ringFg.style.strokeDashoffset = circ*(1-stableCount/STABLE_THRESHOLD);
-      ringWrap.classList.add("visible");
-      if (stableCount >= STABLE_THRESHOLD) { appendLetter(topLetter); stableCount=0; }
-    } else { stableLetter=""; stableCount=0; letterBadge.classList.remove("visible"); ringWrap.classList.remove("visible"); }
-  }
+  maybeSendPrediction(hand);
   requestAnimationFrame(predictLoop);
 }
 
 async function init() {
   try {
+    fetch(HEALTH_URL, { cache:"no-store" }).catch(()=>{});
     loadingMsg.textContent = "Requesting camera access";
     const stream = await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:"user"}});
     video.srcObject = stream;
@@ -732,6 +786,7 @@ async function init() {
       runningMode:"VIDEO",numHands:1,minHandDetectionConfidence:0.6,minHandPresenceConfidence:0.6,minTrackingConfidence:0.5
     });
     buildConfRows();
+    resizeOverlayIfNeeded();
     loadingOverlay.classList.add("hidden");
     statusPill.classList.add("ready"); statusLabel.textContent = "Live";
     requestAnimationFrame(predictLoop);
@@ -791,6 +846,20 @@ window.clearContribute = function() {
 
 function setResult(msg,type) { const el=document.getElementById("contributeResult"); el.textContent=msg; el.className="result-box"+(type?" "+type:""); }
 
+async function detectStillImage(canvas) {
+  imageDetectionActive = true;
+  try {
+    await handLandmarker.setOptions({runningMode:"IMAGE"});
+    return handLandmarker.detect(canvas);
+  } finally {
+    try {
+      await handLandmarker.setOptions({runningMode:"VIDEO"});
+    } finally {
+      imageDetectionActive = false;
+    }
+  }
+}
+
 window.submitContribution = async function() {
   if (!selectedLetter) { setResult("Please select a letter first.","error"); return; }
   if (!currentImageBlob) { setResult("Please provide an image first.","error"); return; }
@@ -801,16 +870,22 @@ window.submitContribution = async function() {
     const canvas=document.createElement("canvas"); canvas.width=img.width; canvas.height=img.height;
     canvas.getContext("2d").drawImage(img,0,0);
     if (!handLandmarker) { setResult("Recogniser not loaded yet — scroll up and wait for it to initialise.","error"); return; }
-    const results=handLandmarker.detect(canvas); const hands=results.landmarks;
+    const results=await detectStillImage(canvas); const hands=results.landmarks;
     if (!hands||hands.length===0) { setResult("No hand detected. Make sure your hand is clearly visible.","error"); document.getElementById("submitBtn").disabled=false; return; }
     const hand=hands[0]; const landmarks=[],landmarks_2d=[];
     for (const lm of hand) { landmarks.push(lm.x,lm.y,lm.z); landmarks_2d.push([lm.x,lm.y]); }
-    const res=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({landmarks,landmarks_2d})});
-    const data=await res.json(); const predicted=data.letter; const conf=Math.round((data.confidence||0)*100);
-    if (predicted===selectedLetter && conf>=60) {
-      setResult(`✓ Verified as "${selectedLetter}" (${conf}% confidence). Thank you!`,"success");
+    const formData = new FormData();
+    formData.append("letter", selectedLetter);
+    formData.append("landmarks", JSON.stringify(landmarks));
+    formData.append("landmarks_2d", JSON.stringify(landmarks_2d));
+    formData.append("image", currentImageBlob, "contribution.jpg");
+    const res=await fetch(CONTRIBUTE_URL,{method:"POST",body:formData});
+    const data=await res.json(); const predicted=data.predicted_letter || ""; const conf=Math.round((data.confidence||0)*100);
+    if (res.ok && data.saved) {
+      setResult(`✓ Verified as "${selectedLetter}" (${conf}% confidence) and saved. Thank you!`,"success");
+      currentImageBlob = null;
     } else {
-      setResult(`✗ Model predicted "${predicted}" (${conf}%) instead of "${selectedLetter}". Try better lighting or a clearer angle.`,"error");
+      setResult(data.detail || `✗ Model predicted "${predicted}" (${conf}%) instead of "${selectedLetter}". Try better lighting or a clearer angle.`,"error");
       document.getElementById("submitBtn").disabled=false;
     }
   } catch(err) { setResult("Error: "+err.message,"error"); document.getElementById("submitBtn").disabled=false; }
