@@ -807,7 +807,20 @@ function predictLoop() {
 
 async function init() {
   try {
-    fetch(HEALTH_URL, { cache:"no-store" }).catch(()=>{});
+    const healthCheck = fetch(HEALTH_URL, { cache:"no-store" });
+statusLabel.textContent = "Warming up...";
+statusPill.style.borderColor = "rgba(201,168,76,0.3)";
+statusPip.style.background = "var(--gold)";
+healthCheck
+  .then(r => r.json())
+  .then(() => {
+    statusLabel.textContent = "Live";
+    statusPill.classList.add("ready");
+  })
+  .catch(() => {
+    statusLabel.textContent = "Warming up...";
+    setTimeout(() => location.reload(), 8000);
+  });
     loadingMsg.textContent = "Requesting camera access";
     const stream = await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:"user"}});
     video.srcObject = stream;
