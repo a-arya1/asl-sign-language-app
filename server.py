@@ -82,9 +82,9 @@ contribution_examples = []
 dtw_cooldown = 0
 DTW_COOLDOWN_SECS = 2.0
 DTW_READY_FRAMES = 24
-DTW_THRESH = 1.25
-DTW_MARGIN = 0.05
-DTW_MIN_MOVEMENT = 0.05
+DTW_THRESH = 0.90
+DTW_MARGIN = 0.18
+DTW_MIN_MOVEMENT = 0.08
  
  
 class LandmarkData(BaseModel):
