@@ -333,17 +333,7 @@ async def contribute(
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Could not read contribution landmarks: {exc}") from exc
 
-    predicted_letter = result["letter"]
-    confidence = result["confidence"]
-    if predicted_letter != selected_letter or confidence < CONTRIBUTE_CONF_THRESHOLD:
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                f'Model predicted "{predicted_letter or "unknown"}" '
-                f"({round(confidence * 100)}%) instead of \"{selected_letter}\". "
-                "Try better lighting or a clearer angle."
-            ),
-        )
+    
 
     contribution_id = f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_{uuid.uuid4().hex[:10]}"
     letter_dir = CONTRIBUTIONS_DIR / selected_letter
