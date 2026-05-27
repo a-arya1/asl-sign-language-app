@@ -353,8 +353,8 @@ async def contribute(
         "id": contribution_id,
         "letter": selected_letter,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "predicted_letter": predicted_letter,
-        "confidence": confidence,
+        "predicted_letter": selected_letter,
+        "confidence": 1.0,
         "top_predictions": result["top_predictions"],
         "landmarks": parsed_landmarks,
         "landmarks_2d": parsed_landmarks_2d,
@@ -378,8 +378,8 @@ async def contribute(
         "training_mode": "adaptive_contribution_memory",
         "id": contribution_id,
         "letter": selected_letter,
-        "predicted_letter": predicted_letter,
-        "confidence": confidence,
+        "predicted_letter": selected_letter,
+        "confidence": 1.0,
         "path": str(metadata_path),
     }
  
