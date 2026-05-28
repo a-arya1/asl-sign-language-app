@@ -1,11 +1,9 @@
-
-
 """
 server.py - FastAPI backend for ASL prediction with DTW for J/Z
 Run with: uvicorn server:app --reload --port 8000
 """
- 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
@@ -21,26 +19,28 @@ import json
 import csv
 import uuid
 import glob
- 
+
 app = FastAPI()
- 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
- 
+
 import os
 
 MODEL_PATH = "hand_gesture_model.joblib"
 CONTRIBUTIONS_DIR = Path("contributions/pending")
 CONTRIBUTION_ROWS_PATH = Path("contributions/training_rows.csv")
 PREDICT_CONF_THRESHOLD = 0.45
+CONTRIB_SECRET = "asl-token-8472xq"
 CONTRIBUTE_CONF_THRESHOLD = 0.50
 PREDICTION_SMOOTHING_FRAMES = 5
 ADAPTIVE_MAX_DISTANCE = 0.42
 ADAPTIVE_BLEND_CONFIDENCE = 0.80
+
 if not os.path.exists(MODEL_PATH):
     print("Downloading model from Google Drive...")
     import gdown
@@ -48,7 +48,7 @@ if not os.path.exists(MODEL_PATH):
     print("Download complete.")
 model = joblib.load(MODEL_PATH)
 print(f"Model loaded. Classes: {list(model.classes_)}")
- 
+
 # Load J/Z templates
 def normalize_motion_path(path):
     path = np.asarray(path, dtype=float)
@@ -71,10 +71,10 @@ def load_templates(letter):
             pass
     print(f"Loaded {len(templates)} templates for {letter}")
     return templates
- 
+
 jtemplates = load_templates("J")
 ztemplates = load_templates("Z")
- 
+
 # Per-client state (single user assumed for local use)
 wrist_buffer = deque(maxlen=30)
 prob_buffer = deque(maxlen=PREDICTION_SMOOTHING_FRAMES)
@@ -85,13 +85,13 @@ DTW_READY_FRAMES = 24
 DTW_THRESH = 0.90
 DTW_MARGIN = 0.18
 DTW_MIN_MOVEMENT = 0.08
- 
- 
+
+
 class LandmarkData(BaseModel):
     landmarks: list       # flat [x,y,z ...] 63 values
     landmarks_2d: list    # [[x,y] ...] 21 pairs
     wrist_path: Optional[list] = None
- 
+
 
 def scaled_feature_vector(features):
     values = np.asarray(features, dtype=float)
@@ -208,12 +208,10 @@ def build_prediction(landmarks, landmarks_2d, wrist_path=None, track_wrist=True,
             wrist_buffer.clear()
             wrist_buffer.extend(wrist_path[-wrist_buffer.maxlen:])
         else:
-            # Track wrist for J/Z DTW
             wrist_x = landmarks_2d[0][0]
             wrist_y = landmarks_2d[0][1]
             wrist_buffer.append([wrist_x, wrist_y])
 
-        # Movement guard — suppress I if hand is moving
         hand_is_moving = False
         if len(wrist_buffer) >= 5:
             recent = list(wrist_buffer)[-5:]
@@ -226,10 +224,8 @@ def build_prediction(landmarks, landmarks_2d, wrist_path=None, track_wrist=True,
         if letter == "I" and hand_is_moving:
             letter = ""
 
-        # Check DTW for J/Z
         dtw_letter = check_dtw()
 
-    # Top 5 for confidence bars
     top_indices = np.argsort(probs)[::-1][:5]
     top_predictions = [
         {"letter": str(model.classes_[i]), "confidence": float(probs[i])}
@@ -256,14 +252,14 @@ def build_prediction(landmarks, landmarks_2d, wrist_path=None, track_wrist=True,
         "adaptive_match": adaptive_match,
     }
 
- 
+
 def check_dtw():
     global dtw_cooldown
     if len(wrist_buffer) < DTW_READY_FRAMES:
         return None
     if time.time() < dtw_cooldown:
         return None
- 
+
     raw_wp = np.array(wrist_buffer)
     movement = np.sum(np.linalg.norm(np.diff(raw_wp, axis=0), axis=1))
     if movement < DTW_MIN_MOVEMENT:
@@ -275,47 +271,50 @@ def check_dtw():
         dx = dtw.distance(wp[:, 0], t[:, 0])
         dy = dtw.distance(wp[:, 1], t[:, 1])
         jdists.append((dx + dy) / 2)
- 
+
     zdists = []
     for t in ztemplates:
         dx = dtw.distance(wp[:, 0], t[:, 0])
         dy = dtw.distance(wp[:, 1], t[:, 1])
         zdists.append((dx + dy) / 2)
- 
+
     best_j = min(jdists) if jdists else float("inf")
     best_z = min(zdists) if zdists else float("inf")
     best = min(best_j, best_z)
     second = max(best_j, best_z)
- 
+
     if best < DTW_THRESH and (second - best) >= DTW_MARGIN:
         dtw_cooldown = time.time() + DTW_COOLDOWN_SECS
         return "J" if best_j < best_z else "Z"
     return None
- 
- 
+
+
 @app.post("/predict")
 def predict(data: LandmarkData):
     try:
         result = build_prediction(data.landmarks, data.landmarks_2d, data.wrist_path, track_wrist=True)
- 
         return {
             "letter": result["letter"],
             "confidence": result["confidence"],
             "top_predictions": result["top_predictions"],
-            "dtw_letter": result["dtw_letter"]  # None or "J"/"Z"
+            "dtw_letter": result["dtw_letter"]
         }
- 
     except Exception as e:
         return {"letter": "", "confidence": 0.0, "top_predictions": [], "dtw_letter": None, "error": str(e)}
 
 
 @app.post("/contribute")
 async def contribute(
+    request: Request,
     letter: str = Form(...),
     landmarks: str = Form(...),
     landmarks_2d: str = Form(...),
     image: Optional[UploadFile] = File(None),
 ):
+    token = request.headers.get("X-Contrib-Token", "")
+    if token != CONTRIB_SECRET:
+        raise HTTPException(status_code=403, detail="Unauthorized.")
+
     selected_letter = letter.strip().upper()
     if len(selected_letter) != 1 or selected_letter < "A" or selected_letter > "Z":
         raise HTTPException(status_code=400, detail="Please select a valid A-Z letter.")
@@ -333,21 +332,23 @@ async def contribute(
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Could not read contribution landmarks: {exc}") from exc
 
-    
-
     contribution_id = f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_{uuid.uuid4().hex[:10]}"
     letter_dir = CONTRIBUTIONS_DIR / selected_letter
     letter_dir.mkdir(parents=True, exist_ok=True)
 
     image_filename = None
     if image and image.filename:
+        contents = await image.read()
+        if len(contents) > 5 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Image too large. Please use an image under 5MB.")
+        await image.seek(0)
         suffix = Path(image.filename).suffix.lower()
         if suffix not in {".jpg", ".jpeg", ".png", ".webp"}:
             suffix = ".jpg"
         image_filename = f"{contribution_id}{suffix}"
         image_path = letter_dir / image_filename
         with image_path.open("wb") as out_file:
-            out_file.write(await image.read())
+            out_file.write(contents)
 
     metadata = {
         "id": contribution_id,
@@ -380,18 +381,18 @@ async def contribute(
         "letter": selected_letter,
         "predicted_letter": selected_letter,
         "confidence": 1.0,
+        "angle_features": result["angle_features"],
         "path": str(metadata_path),
     }
- 
- 
+
+
 @app.post("/reset_wrist")
 def reset_wrist():
-    """Call this when no hand is detected to clear wrist buffer."""
     wrist_buffer.clear()
     prob_buffer.clear()
     return {"status": "ok"}
- 
- 
+
+
 @app.get("/health")
 def health():
     return {"status": "ok", "contribution_examples": len(contribution_examples)}

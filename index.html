@@ -66,7 +66,6 @@
     z-index:1;
   }
 
-  /* ── Header ── */
   header {
     padding:var(--s4) 0 0;
     display:flex;
@@ -84,11 +83,9 @@
   .status-pill.error{border-color:rgba(180,40,60,0.3);color:var(--maroon-light);}
   .status-pill.error .status-pip{background:var(--maroon-light);}
 
-  /* ── Divider ── */
   .divider{margin:var(--s3) 0;}
   .divider-line{height:1px;background:linear-gradient(90deg,var(--maroon-deep),var(--gold),transparent);opacity:0.4;}
 
-  /* ── Section divider ── */
   .section-divider {
     position:relative;
     z-index:1;
@@ -118,7 +115,6 @@
     background:var(--cream);
   }
 
-  /* ── Section titles ── */
   .section-title {
     font-family:var(--font-display);
     font-size:2rem;
@@ -135,7 +131,6 @@
     margin-bottom:var(--s3);
   }
 
-  /* ── RECOGNISER SECTION ── */
   #recogniser { padding-top:var(--s4); }
 
   .main {
@@ -195,7 +190,6 @@
   .shortcut-row{display:flex;align-items:center;justify-content:space-between;font-family:var(--font-sans);font-size:0.75rem;color:var(--ink-light);}
   .kbd{font-family:var(--font-mono);font-size:0.6rem;background:var(--cream-mid);border:1px solid var(--cream-dark);border-radius:var(--radius-sm);padding:2px 6px;color:var(--ink-mid);letter-spacing:0.04em;}
 
-  /* ── ABOUT SECTION ── */
   #about { position:relative; z-index:1; }
   .about-grid {
     display:grid;
@@ -269,14 +263,13 @@
   .github-link{display:inline-flex;align-items:center;gap:var(--s1);font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--maroon);text-decoration:none;padding:10px var(--s2);border:1px solid var(--border);border-radius:var(--radius);transition:all var(--transition);background:var(--surface);}
   .github-link:hover{background:var(--maroon);color:var(--cream);border-color:var(--maroon);}
 
-  /* ── CONTRIBUTE SECTION ── */
   #contribute { position:relative; z-index:1; }
   .contribute-intro p {
     font-family:var(--font-sans);
     font-size:0.95rem;
     line-height:1.8;
     color:var(--ink-mid);
-    margin-bottom:var(--s4);
+    margin-bottom:var(--s3);
     max-width:640px;
   }
   .contribute-steps {
@@ -319,7 +312,89 @@
   .result-box.error{border-color:rgba(180,40,60,0.3);background:rgba(107,26,42,0.04);color:var(--maroon-light);}
   #snapshotCanvas{display:none;}
 
-  /* ── Footer ── */
+  /* ── Privacy notice box ── */
+  .privacy-notice {
+    background:var(--surface);
+    border:1px solid var(--border-gold);
+    border-radius:var(--radius-lg);
+    padding:var(--s3);
+    margin-bottom:var(--s3);
+  }
+  .privacy-notice-title {
+    font-family:var(--font-mono);
+    font-size:0.65rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--gold-dim);
+    margin-bottom:var(--s2);
+  }
+  .privacy-notice p {
+    font-family:var(--font-sans);
+    font-size:0.8rem;
+    color:var(--ink-light);
+    line-height:1.7;
+    margin-bottom:var(--s1);
+  }
+  .privacy-notice p:last-child { margin-bottom:0; }
+  .consent-row {
+    display:flex;
+    align-items:flex-start;
+    gap:var(--s1);
+    margin-top:var(--s2);
+    padding-top:var(--s2);
+    border-top:1px solid var(--border);
+  }
+  .consent-row input[type="checkbox"] {
+    margin-top:3px;
+    flex-shrink:0;
+    accent-color:var(--maroon);
+    width:14px;
+    height:14px;
+  }
+  .consent-row label {
+    font-family:var(--font-sans);
+    font-size:0.8rem;
+    color:var(--ink-mid);
+    line-height:1.5;
+    cursor:pointer;
+  }
+
+  /* ── Privacy section ── */
+  #privacy { position:relative; z-index:1; }
+  .privacy-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:var(--s4);
+    margin-bottom:var(--s4);
+  }
+  .privacy-block {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:var(--s3);
+  }
+  .privacy-block-title {
+    font-family:var(--font-mono);
+    font-size:0.65rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--maroon);
+    margin-bottom:var(--s2);
+  }
+  .privacy-block p {
+    font-family:var(--font-sans);
+    font-size:0.82rem;
+    color:var(--ink-light);
+    line-height:1.7;
+    margin-bottom:var(--s1);
+  }
+  .privacy-block p:last-child { margin-bottom:0; }
+  .privacy-block.warning {
+    border-color:var(--border-gold);
+    background:rgba(201,168,76,0.04);
+  }
+  .privacy-block.warning .privacy-block-title { color:var(--gold-dim); }
+
   footer {
     position:relative;
     z-index:1;
@@ -336,17 +411,91 @@
   @media(max-width:800px){
     .main{grid-template-columns:1fr;}
     .about-grid{grid-template-columns:1fr;}
+    .privacy-grid{grid-template-columns:1fr;}
     .contribute-steps{grid-template-columns:1fr;}
     .contribute-main{grid-template-columns:1fr;}
     .wrap{padding:0 var(--s2);}
   }
+    /* ── Dark mode ── */
+  body.dark {
+    --maroon:       #e8758a;
+    --maroon-deep:  #f0a0b0;
+    --maroon-mid:   #c45570;
+    --maroon-light: #c4667a;
+    --gold:         #d4a84c;
+    --gold-light:   #e8cc84;
+    --gold-dim:     #b8943c;
+    --cream:        #0f0a0c;
+    --cream-mid:    #1a1015;
+    --cream-dark:   #2a1820;
+    --ink:          #f0e8e8;
+    --ink-mid:      #d4c0c4;
+    --ink-light:    #a89098;
+    --surface:      #1a1015;
+    --border:       rgba(232,117,138,0.15);
+    --border-gold:  rgba(212,168,76,0.3);
+    --shadow:       0 2px 16px rgba(0,0,0,0.4);
+    --shadow-lg:    0 8px 40px rgba(0,0,0,0.5);
+  }
+
+  body.dark::before {
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%230f0a0c'/%3E%3Crect width='1' height='1' fill='%231a1015' opacity='0.8'/%3E%3C/svg%3E");
+  }
+
+  .theme-toggle {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--ink-light);
+    transition: all var(--transition);
+    flex-shrink: 0;
+  }
+  .theme-toggle:hover {
+    background: var(--maroon);
+    border-color: var(--maroon);
+    color: var(--cream);
+  }
+
+  /* ── Contribution counter ── */
+  .contrib-counter {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s1);
+    margin-bottom: var(--s4);
+  }
+  .contrib-count {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .contrib-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+  }
 </style>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XE0YZDJFKM"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XE0YZDJFKM');
+</script>
 </head>
 <body>
 
 <div class="wrap">
 
-  <!-- ── Header ── -->
   <header>
     <svg class="header-crest" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M20 4L34 12V28L20 36L6 28V12L20 4Z" fill="none" stroke="#6b1a2a" stroke-width="1.5"/>
@@ -361,17 +510,18 @@
       <span class="status-pip" id="statusPip"></span>
       <span id="statusLabel">Initialising</span>
     </div>
+    <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">
+  <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+</button>
   </header>
 
   <div class="divider"><div class="divider-line"></div></div>
 
-  <!-- ══════════════════════════════════════════════════════════════
-       SECTION 1 — RECOGNISER
-  ══════════════════════════════════════════════════════════════ -->
   <section id="recogniser">
     <div class="section-title">Sign a letter</div>
     <div class="section-subtitle">Hold your hand in frame and hold a sign still</div>
-
     <div class="main">
       <div class="camera-wrap">
         <div class="camera-panel">
@@ -398,7 +548,6 @@
           <span id="metaInfo">—</span>
         </div>
       </div>
-
       <div class="sidebar">
         <div class="card">
           <div class="card-header">
@@ -448,7 +597,6 @@
     </div>
   </section>
 
-  <!-- ── Section Divider ── -->
   <div class="section-divider">
     <div class="section-divider-inner">
       <div class="section-divider-line"></div>
@@ -457,9 +605,6 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════
-       SECTION 2 — ABOUT
-  ══════════════════════════════════════════════════════════════ -->
   <section id="about">
     <div class="about-grid">
       <div>
@@ -467,7 +612,7 @@
         <div class="about-hero-role">CS Student · Builder of this project</div>
         <div class="about-body">
           <p>ASL Fingerspelling is a real-time American Sign Language recognition app that runs entirely in the browser. Point your camera at your hand, sign a letter, and it appears on screen — no installs, no plugins.</p>
-          <p>The system uses MediaPipe to detect 21 hand landmarks per frame, normalises them into a 72-feature vector, and sends them to a Random Forest classifier. Predictions are smoothed over a buffer and must hold stable before a letter commits. J and Z use Dynamic Time Warping on wrist-path trajectories since they require motion.</p>
+          <p>The system uses MediaPipe to detect 21 hand landmarks per frame, normalises them into a 72-feature vector, and sends them to a Random Forest classifier. Predictions are smoothed over a buffer and must hold stable before a letter commits.</p>
           <a class="github-link" href="https://github.com/a-arya1/asl-sign-language-app" target="_blank" rel="noopener" style="margin-top:var(--s3);display:inline-flex;">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
             github.com/a-arya1/asl-sign-language-app
@@ -477,29 +622,62 @@
       <div>
         <div class="about-sub">Roadmap</div>
         <div class="roadmap-list">
-          <div class="roadmap-item"><span class="roadmap-badge done">Done</span><div class="roadmap-text"><strong>A–Z Static Fingerspelling</strong>Real-time recognition of all 26 letters with confidence smoothing and DTW for J/Z.</div></div>
-          <div class="roadmap-item"><span class="roadmap-badge done">Done</span><div class="roadmap-text"><strong>Public Deployment</strong>Live on GitHub Pages + Render — shareable with anyone.</div></div>
+          <div class="roadmap-item"><span class="roadmap-badge done">Done</span><div class="roadmap-text"><strong>A–Z Static Fingerspelling</strong>Real-time recognition of all 26 letters with confidence smoothing.</div></div>
+          <div class="roadmap-item"><span class="roadmap-badge done">Done</span><div class="roadmap-text"><strong>Public Deployment</strong>Live on Netlify + Render — shareable with anyone.</div></div>
           <div class="roadmap-item"><span class="roadmap-badge next">Next</span><div class="roadmap-text"><strong>Word Signs</strong>Add HELP, YES, NO, PLEASE as dedicated classes.</div></div>
           <div class="roadmap-item"><span class="roadmap-badge next">Next</span><div class="roadmap-text"><strong>MLP Neural Network</strong>Replace Random Forest with a lightweight MLP.</div></div>
           <div class="roadmap-item"><span class="roadmap-badge future">Future</span><div class="roadmap-text"><strong>LSTM for Motion Signs</strong>30-frame sequence model for full ASL motion signs.</div></div>
         </div>
       </div>
     </div>
-
     <div class="about-sub">Tech Stack</div>
     <div class="tech-grid">
       <div class="tech-item"><div class="tech-item-label">Frontend</div><div class="tech-item-value">Vanilla JS + MediaPipe</div></div>
       <div class="tech-item"><div class="tech-item-label">Backend</div><div class="tech-item-value">FastAPI + Python 3.9</div></div>
       <div class="tech-item"><div class="tech-item-label">Model</div><div class="tech-item-value">Random Forest</div></div>
       <div class="tech-item"><div class="tech-item-label">Features</div><div class="tech-item-value">72 — landmarks + angles</div></div>
-      <div class="tech-item"><div class="tech-item-label">Motion Signs</div><div class="tech-item-value">DTW on wrist paths</div></div>
       <div class="tech-item"><div class="tech-item-label">Accuracy</div><div class="tech-item-value">~99% on test set</div></div>
       <div class="tech-item"><div class="tech-item-label">Training Data</div><div class="tech-item-value">Kaggle + Mendeley + personal</div></div>
-      <div class="tech-item"><div class="tech-item-label">Hosting</div><div class="tech-item-value">GitHub Pages + Render</div></div>
+      <div class="tech-item"><div class="tech-item-label">Contributions</div><div class="tech-item-value">Google Sheets</div></div>
+      <div class="tech-item"><div class="tech-item-label">Hosting</div><div class="tech-item-value">Netlify + Render</div></div>
     </div>
   </section>
 
-  <!-- ── Section Divider ── -->
+  <div class="section-divider">
+    <div class="section-divider-inner">
+      <div class="section-divider-line"></div>
+      <div class="section-divider-label">Privacy &amp; Data</div>
+      <div class="section-divider-line"></div>
+    </div>
+  </div>
+
+  <section id="privacy">
+    <div class="section-title">Privacy &amp; Data Use</div>
+    <div class="section-subtitle">What this app collects, what it doesn't, and your rights</div>
+    <div class="privacy-grid">
+      <div class="privacy-block">
+        <div class="privacy-block-title">Recognition — No data stored</div>
+        <p>When you use the sign recogniser, your camera feed never leaves your device. MediaPipe detects your hand landmarks entirely in your browser. The landmark coordinates are sent to the backend server only to run the classifier, and are not stored, logged, or retained in any form. This site uses Google Analytics to count visitors. No personally identifiable information is collected through analytics.</p>
+        <p>Your video feed is never recorded or transmitted anywhere.</p>
+      </div>
+      <div class="privacy-block">
+        <div class="privacy-block-title">Contributions — What gets saved</div>
+        <p>When you voluntarily submit a training contribution, the following data is saved to a private Google Sheet: a timestamp, the letter label you selected, the 63 normalized hand landmark coordinates, and 9 joint angle values.</p>
+        <p>No images, no video, no names, no IP addresses, and no personally identifiable information are stored. The landmark data cannot be used to identify you.</p>
+      </div>
+      <div class="privacy-block warning">
+        <div class="privacy-block-title">Age requirement</div>
+        <p>The contribution feature collects biometric-derived data (hand landmarks) for the purpose of training an AI model. Under U.S. law (COPPA) and related regulations, you must be at least 13 years old to submit contributions without parental consent.</p>
+        <p>By submitting a contribution you confirm that you are 13 or older, or that you have obtained parental or guardian permission.</p>
+      </div>
+      <div class="privacy-block warning">
+        <div class="privacy-block-title">Limitations &amp; risks</div>
+        <p>This is a student research project, not a commercial product. Data submitted via contributions is stored in a Google Sheet controlled by the project author and may be used to retrain the model.</p>
+        <p>Contributions are voluntary. You can stop at any time simply by not submitting. There is currently no automated way to request deletion of a submitted contribution — contact the project author directly via GitHub if you wish to have your data removed.</p>
+      </div>
+    </div>
+  </section>
+
   <div class="section-divider">
     <div class="section-divider-inner">
       <div class="section-divider-line"></div>
@@ -508,19 +686,30 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════
-       SECTION 3 — CONTRIBUTE
-  ══════════════════════════════════════════════════════════════ -->
   <section id="contribute">
     <div class="section-title">Help improve the model</div>
+    <div class="contrib-counter" id="contribCounter">
+  <span class="contrib-count" id="contribCount">—</span>
+  <span class="contrib-label">contributions submitted</span>
+</div>
     <div class="contribute-intro">
-      <p>Submit hand sign images to help train future versions. Each submission is verified by the model before being accepted — only images the model can clearly read are saved as training data.</p>
+      <p>Submit hand sign samples to help train future versions. Every contribution helps build a more diverse dataset across different hands, skin tones, and lighting conditions. Only hand landmark data is saved — no images or video.</p>
     </div>
 
     <div class="contribute-steps">
       <div class="step-card"><div class="step-num">1</div><div class="step-title">Pick a letter</div><div class="step-desc">Select the ASL letter you want to submit a sample for.</div></div>
       <div class="step-card"><div class="step-num">2</div><div class="step-title">Capture or upload</div><div class="step-desc">Take a live snapshot or upload an existing photo of your hand sign.</div></div>
-      <div class="step-card"><div class="step-num">3</div><div class="step-title">Verified &amp; saved</div><div class="step-desc">The model checks your sign. If confirmed, it's saved as training data.</div></div>
+      <div class="step-card"><div class="step-num">3</div><div class="step-title">Saved</div><div class="step-desc">Your hand landmark data is extracted and saved anonymously as training data.</div></div>
+    </div>
+
+    <div class="privacy-notice">
+      <div class="privacy-notice-title">Before you contribute</div>
+      <p>By submitting, your hand's landmark coordinates (not your image or video) will be saved to a private dataset used to improve this model. No personally identifiable information is collected.</p>
+      <p>You must be 13 or older to contribute, or have parental permission.</p>
+      <div class="consent-row">
+        <input type="checkbox" id="consentCheck"/>
+        <label for="consentCheck">I am 13 or older (or have parental permission), I understand my hand landmark data will be saved anonymously for model training, and I consent to this use.</label>
+      </div>
     </div>
 
     <span class="picker-label">Select a letter</span>
@@ -535,47 +724,48 @@
         </div>
       </div>
       <div class="capture-panel">
-        <div class="capture-panel-header">Upload Image</div>
+        <div class="capture-panel-header">Preview &amp; Submit</div>
         <div class="capture-panel-body">
           <div class="capture-preview-wrap">
             <img id="capturePreview" alt="snapshot"/>
             <img id="uploadPreview" alt="upload"/>
             <div class="preview-placeholder" id="previewPlaceholder">No image yet</div>
           </div>
-          <div class="upload-zone" onclick="document.getElementById('uploadInput').click()"><p>Click to upload a photo</p></div>
+          <div class="upload-zone" onclick="document.getElementById('uploadInput').click()"><p>Click to upload a photo instead</p></div>
           <input type="file" id="uploadInput" accept="image/*" onchange="handleUpload(event)"/>
           <div class="capture-btn-row">
-            <button class="cbtn primary" id="submitBtn" onclick="submitContribution()" disabled>Verify &amp; Submit</button>
+            <button class="cbtn primary" id="submitBtn" onclick="submitContribution()" disabled>Submit</button>
             <button class="cbtn" onclick="clearContribute()">Clear</button>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="result-box" id="contributeResult">Select a letter and provide an image to get started.</div>
+    <div class="result-box" id="contributeResult">Agree to the terms above, select a letter, and provide an image to get started.</div>
     <canvas id="snapshotCanvas" style="display:none;"></canvas>
   </section>
 
-  <!-- ── Footer ── -->
   <footer>
     <span class="footer-copy">ASL Fingerspelling · A–Z Recognition</span>
     <span class="footer-note">Hold each sign still · Good lighting improves accuracy</span>
   </footer>
 
-</div><!-- /wrap -->
+</div>
 
 <script type="module">
 import { FilesetResolver, HandLandmarker } from
   "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm";
 
-const API_URL   = "https://asl-sign-language-app.onrender.com/predict";
-const HEALTH_URL = "https://asl-sign-language-app.onrender.com/health";
-const RESET_URL = "https://asl-sign-language-app.onrender.com/reset_wrist";
+const API_URL        = "https://asl-sign-language-app.onrender.com/predict";
+const HEALTH_URL     = "https://asl-sign-language-app.onrender.com/health";
+const RESET_URL      = "https://asl-sign-language-app.onrender.com/reset_wrist";
 const CONTRIBUTE_URL = "https://asl-sign-language-app.onrender.com/contribute";
-const BUFFER_SIZE      = 3;
-const STABLE_THRESHOLD = 3;
-const CONF_THRESHOLD   = 0.45;
-const COOLDOWN_MS      = 800;
+const SHEETS_URL     = "https://script.google.com/macros/s/AKfycbzOuLYk89Bui93AyPSczX2GgU5qIYXBdk0JmWJ-l2Als0OvEaJN57m77bdkG4OLw96g/exec";
+
+const BUFFER_SIZE         = 3;
+const STABLE_THRESHOLD    = 3;
+const CONF_THRESHOLD      = 0.45;
+const COOLDOWN_MS         = 800;
 const PREDICT_INTERVAL_MS = 80;
 
 const video          = document.getElementById("video");
@@ -659,31 +849,23 @@ function drawHand(lms) {
   const lmX = lm => offsetX + lm.x*drawW;
   const lmY = lm => offsetY + lm.y*drawH;
   ctx.save();
-  ctx.strokeStyle = "rgba(185,28,28,0.95)";
-  ctx.lineWidth = 5;
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  ctx.shadowColor = "rgba(185,28,28,0.45)";
-  ctx.shadowBlur = 10;
+  ctx.strokeStyle = "rgba(185,28,28,0.95)"; ctx.lineWidth = 5; ctx.lineJoin = "round";
+  ctx.lineCap = "round"; ctx.shadowColor = "rgba(185,28,28,0.45)"; ctx.shadowBlur = 10;
   ctx.beginPath();
-  OUTLINE.forEach((idx, i) => {
-    const x = lmX(lms[idx]), y = lmY(lms[idx]);
-    if (i === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  });
-  ctx.stroke();
-  ctx.restore();
+  OUTLINE.forEach((idx, i) => { const x=lmX(lms[idx]),y=lmY(lms[idx]); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y); });
+  ctx.stroke(); ctx.restore();
   ctx.strokeStyle = "rgba(201,168,76,0.7)"; ctx.lineWidth = 2; ctx.lineCap = "round";
   for (const [a,b] of CONN) { ctx.beginPath(); ctx.moveTo(lmX(lms[a]),lmY(lms[a])); ctx.lineTo(lmX(lms[b]),lmY(lms[b])); ctx.stroke(); }
-  for (let i = 0; i < lms.length; i++) {
-    const x = lmX(lms[i]), y = lmY(lms[i]), r = [4,8,12,16,20].includes(i) ? 6 : 4;
+  for (let i=0;i<lms.length;i++) {
+    const x=lmX(lms[i]),y=lmY(lms[i]),r=[4,8,12,16,20].includes(i)?6:4;
     ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
-    ctx.fillStyle = i===0 ? "rgba(201,168,76,1)" : [4,8,12,16,20].includes(i) ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.85)";
+    ctx.fillStyle=i===0?"rgba(201,168,76,1)":[4,8,12,16,20].includes(i)?"rgba(255,255,255,1)":"rgba(255,255,255,0.85)";
     ctx.fill();
   }
 }
 
 async function getPrediction(hand) {
-  const landmarks = [], landmarks_2d = [];
+  const landmarks=[], landmarks_2d=[];
   for (const lm of hand) { landmarks.push(lm.x,lm.y,lm.z); landmarks_2d.push([lm.x,lm.y]); }
   try {
     const res = await fetch(API_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({landmarks,landmarks_2d,wrist_path:wristPath}) });
@@ -693,59 +875,27 @@ async function getPrediction(hand) {
 
 function resizeOverlayIfNeeded() {
   const rect = overlayCanvas.getBoundingClientRect();
-  const nextWidth = Math.round(rect.width);
-  const nextHeight = Math.round(rect.height);
-  if (nextWidth && nextHeight && (nextWidth !== overlayWidth || nextHeight !== overlayHeight)) {
-    overlayWidth = nextWidth;
-    overlayHeight = nextHeight;
-    overlayCanvas.width = nextWidth;
-    overlayCanvas.height = nextHeight;
+  const nW = Math.round(rect.width), nH = Math.round(rect.height);
+  if (nW && nH && (nW !== overlayWidth || nH !== overlayHeight)) {
+    overlayWidth=nW; overlayHeight=nH; overlayCanvas.width=nW; overlayCanvas.height=nH;
   }
 }
 
 function trackFps() {
   frameCount++;
   const now = performance.now();
-  if (now - lastFpsTime >= 1000) { fps = frameCount; frameCount = 0; lastFpsTime = now; metaInfo.textContent = `${fps} fps · ${video.videoWidth}×${video.videoHeight}`; }
+  if (now-lastFpsTime>=1000) { fps=frameCount; frameCount=0; lastFpsTime=now; metaInfo.textContent=`${fps} fps · ${video.videoWidth}×${video.videoHeight}`; }
 }
 
-function hideLivePredictionState() {
-  stableLetter = "";
-  stableCount = 0;
-  letterBadge.classList.remove("visible");
-  ringWrap.classList.remove("visible");
-}
-
-function resetLivePredictionState() {
-  predictionBuffer = [];
-  hideLivePredictionState();
-}
-
-function showMotionLetter(letter) {
-  letterGlyph.textContent = letter;
-  letterConf.textContent = "motion";
-  letterBadge.classList.add("visible");
-  ringFg.style.strokeDasharray = 2*Math.PI*17;
-  ringFg.style.strokeDashoffset = 0;
-  ringWrap.classList.add("visible");
-  appendLetter(letter);
-  setTimeout(() => {
-    if (letterGlyph.textContent === letter) hideLivePredictionState();
-  }, 650);
-}
+function hideLivePredictionState() { stableLetter=""; stableCount=0; letterBadge.classList.remove("visible"); ringWrap.classList.remove("visible"); }
+function resetLivePredictionState() { predictionBuffer=[]; hideLivePredictionState(); }
 
 function handlePredictionResult(data) {
   if (!liveHasHand) return;
-  const {letter,confidence,top_predictions,dtw_letter} = data || {};
-  if (dtw_letter) {
-    predictionBuffer = [];
-    stableLetter = "";
-    stableCount = 0;
-    showMotionLetter(dtw_letter);
-    return;
-  }
+  const {letter, confidence, top_predictions} = data || {};
+  // J and Z disabled — dtw_letter intentionally ignored
   if (top_predictions?.length) updateConfRows(top_predictions);
-  if (letter) {
+  if (letter && letter !== "J" && letter !== "Z") {
     predictionBuffer.push(letter);
     if (predictionBuffer.length > BUFFER_SIZE) predictionBuffer.shift();
   }
@@ -757,11 +907,11 @@ function handlePredictionResult(data) {
   if (topLetter && confident) {
     letterGlyph.textContent = topLetter; letterConf.textContent = Math.round(confidence*100)+"% conf";
     letterBadge.classList.add("visible");
-    if (topLetter === stableLetter) stableCount++; else { stableLetter=topLetter; stableCount=1; }
+    if (topLetter===stableLetter) stableCount++; else { stableLetter=topLetter; stableCount=1; }
     const circ = 2*Math.PI*17;
-    ringFg.style.strokeDasharray = circ; ringFg.style.strokeDashoffset = circ*(1-stableCount/STABLE_THRESHOLD);
+    ringFg.style.strokeDasharray=circ; ringFg.style.strokeDashoffset=circ*(1-stableCount/STABLE_THRESHOLD);
     ringWrap.classList.add("visible");
-    if (stableCount >= STABLE_THRESHOLD) { appendLetter(topLetter); stableCount=0; }
+    if (stableCount>=STABLE_THRESHOLD) { appendLetter(topLetter); stableCount=0; }
   } else {
     hideLivePredictionState();
   }
@@ -769,38 +919,34 @@ function handlePredictionResult(data) {
 
 function maybeSendPrediction(hand) {
   const now = performance.now();
-  if (predictInFlight || now - lastPredictTime < PREDICT_INTERVAL_MS) return;
-  lastPredictTime = now;
-  predictInFlight = true;
-  getPrediction(hand)
-    .then(handlePredictionResult)
-    .finally(() => { predictInFlight = false; });
+  if (predictInFlight || now-lastPredictTime<PREDICT_INTERVAL_MS) return;
+  lastPredictTime=now; predictInFlight=true;
+  getPrediction(hand).then(handlePredictionResult).finally(()=>{ predictInFlight=false; });
 }
 
 function predictLoop() {
   if (imageDetectionActive) { requestAnimationFrame(predictLoop); return; }
-  if (!handLandmarker || video.readyState < 2) { requestAnimationFrame(predictLoop); return; }
+  if (!handLandmarker || video.readyState<2) { requestAnimationFrame(predictLoop); return; }
   resizeOverlayIfNeeded();
-  if (video.currentTime === lastVideoTime) { requestAnimationFrame(predictLoop); return; }
-  lastVideoTime = video.currentTime; trackFps();
+  if (video.currentTime===lastVideoTime) { requestAnimationFrame(predictLoop); return; }
+  lastVideoTime=video.currentTime; trackFps();
   ctx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
   const results = handLandmarker.detectForVideo(video, performance.now());
   const hands = results.landmarks;
-  if (!hands || hands.length === 0) {
-    liveHasHand = false;
-    wristPath = [];
-    noHandFrames++; noHand.style.opacity = "1";
+  if (!hands||hands.length===0) {
+    liveHasHand=false; wristPath=[];
+    noHandFrames++; noHand.style.opacity="1";
     resetLivePredictionState();
-    if (noHandFrames === 10 && !pendingResetWrist) {
-      pendingResetWrist = true;
-      fetch(RESET_URL,{method:"POST"}).catch(()=>{}).finally(()=>{ pendingResetWrist = false; });
+    if (noHandFrames===10 && !pendingResetWrist) {
+      pendingResetWrist=true;
+      fetch(RESET_URL,{method:"POST"}).catch(()=>{}).finally(()=>{ pendingResetWrist=false; });
     }
     requestAnimationFrame(predictLoop); return;
   }
-  liveHasHand = true; noHandFrames = 0; pendingResetWrist = false; noHand.style.opacity = "0";
-  const hand = hands[0]; drawHand(hand);
+  liveHasHand=true; noHandFrames=0; pendingResetWrist=false; noHand.style.opacity="0";
+  const hand=hands[0]; drawHand(hand);
   wristPath.push([hand[0].x, hand[0].y]);
-  if (wristPath.length > 30) wristPath.shift();
+  if (wristPath.length>30) wristPath.shift();
   maybeSendPrediction(hand);
   requestAnimationFrame(predictLoop);
 }
@@ -808,23 +954,17 @@ function predictLoop() {
 async function init() {
   try {
     const healthCheck = fetch(HEALTH_URL, { cache:"no-store" });
-statusLabel.textContent = "Warming up...";
-statusPill.style.borderColor = "rgba(201,168,76,0.3)";
-statusPip.style.background = "var(--gold)";
-healthCheck
-  .then(r => r.json())
-  .then(() => {
-    statusLabel.textContent = "Live";
-    statusPill.classList.add("ready");
-  })
-  .catch(() => {
     statusLabel.textContent = "Warming up...";
-    setTimeout(() => location.reload(), 8000);
-  });
+    statusPill.style.borderColor = "rgba(201,168,76,0.3)";
+    statusPip.style.background = "var(--gold)";
+    healthCheck
+      .then(r=>r.json())
+      .then(()=>{ statusLabel.textContent="Live"; statusPill.classList.add("ready"); })
+      .catch(()=>{ statusLabel.textContent="Backend offline"; statusPill.classList.add("error"); });
     loadingMsg.textContent = "Requesting camera access";
     const stream = await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:"user"}});
-    video.srcObject = stream;
-    await new Promise(r => video.onloadedmetadata = r);
+    video.srcObject=stream;
+    await new Promise(r=>video.onloadedmetadata=r);
     await video.play(); liveDot.classList.add("live");
     loadingMsg.textContent = "Loading hand detection model";
     const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
@@ -835,45 +975,61 @@ healthCheck
     buildConfRows();
     resizeOverlayIfNeeded();
     loadingOverlay.classList.add("hidden");
-    statusPill.classList.add("ready"); statusLabel.textContent = "Live";
+    statusPill.classList.add("ready"); statusLabel.textContent="Live";
     requestAnimationFrame(predictLoop);
-
-    // Init contribute camera
     try {
       const cs = await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:"user"}});
-      document.getElementById("contributeVideo").srcObject = cs;
+      document.getElementById("contributeVideo").srcObject=cs;
       await document.getElementById("contributeVideo").play();
     } catch(e) {}
-
   } catch(err) {
-    loadingMsg.textContent = err.message;
-    statusPill.classList.add("error"); statusLabel.textContent = "Error";
+    loadingMsg.textContent=err.message;
+    statusPill.classList.add("error"); statusLabel.textContent="Error";
   }
 }
 
-// Contribute logic
+// ── Consent gate ──
+const consentCheck = document.getElementById("consentCheck");
+const submitBtn    = document.getElementById("submitBtn");
+consentCheck.addEventListener("change", () => {
+  // only enable if consent checked AND image ready
+  if (!consentCheck.checked) submitBtn.disabled = true;
+});
+
+// ── Contribute logic ──
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-let selectedLetter = null, currentImageBlob = null;
+let selectedLetter = null, currentImageBlob = null, imageReady = false;
 
 const pickerEl = document.getElementById("letterPicker");
 LETTERS.forEach(l => {
-  const btn = document.createElement("button"); btn.className = "letter-pick-btn"; btn.textContent = l;
+  const btn = document.createElement("button"); btn.className="letter-pick-btn"; btn.textContent=l;
   btn.onclick = () => { document.querySelectorAll(".letter-pick-btn").forEach(b=>b.classList.remove("selected")); btn.classList.add("selected"); selectedLetter=l; setResult("",""); };
   pickerEl.appendChild(btn);
 });
+
+function maybeEnableSubmit() {
+  submitBtn.disabled = !(consentCheck.checked && imageReady);
+}
 
 window.takeSnapshot = function() {
   const cv = document.getElementById("contributeVideo");
   const canvas = document.getElementById("snapshotCanvas");
   canvas.width=cv.videoWidth; canvas.height=cv.videoHeight;
   canvas.getContext("2d").drawImage(cv,0,0);
-  canvas.toBlob(blob => { currentImageBlob=blob; showPreview("capturePreview",URL.createObjectURL(blob)); document.getElementById("submitBtn").disabled=false; setResult("Snapshot taken. Click Verify & Submit when ready.",""); },"image/jpeg",0.9);
+  canvas.toBlob(blob => {
+    currentImageBlob=blob; imageReady=true;
+    showPreview("capturePreview", URL.createObjectURL(blob));
+    maybeEnableSubmit();
+    setResult("Snapshot taken. Click Submit when ready.","");
+  },"image/jpeg",0.9);
 };
 
 window.handleUpload = function(e) {
   const file=e.target.files[0]; if(!file) return;
-  currentImageBlob=file; showPreview("uploadPreview",URL.createObjectURL(file));
-  document.getElementById("submitBtn").disabled=false; setResult("Image loaded. Click Verify & Submit when ready.","");
+  currentImageBlob=file; imageReady=true;
+  showPreview("uploadPreview", URL.createObjectURL(file));
+  maybeEnableSubmit();
+  setResult("Image loaded. Click Submit when ready.","");
 };
 
 function showPreview(id,url) {
@@ -883,61 +1039,118 @@ function showPreview(id,url) {
 }
 
 window.clearContribute = function() {
-  currentImageBlob=null;
+  currentImageBlob=null; imageReady=false;
   ["capturePreview","uploadPreview"].forEach(i=>{const el=document.getElementById(i);el.style.display="none";el.src="";});
   document.getElementById("previewPlaceholder").style.display="block";
-  document.getElementById("submitBtn").disabled=true;
+  submitBtn.disabled=true;
   document.getElementById("uploadInput").value="";
-  setResult("Select a letter and provide an image to get started.","");
+  setResult("Agree to the terms above, select a letter, and provide an image to get started.","");
 };
 
 function setResult(msg,type) { const el=document.getElementById("contributeResult"); el.textContent=msg; el.className="result-box"+(type?" "+type:""); }
 
 async function detectStillImage(canvas) {
-  imageDetectionActive = true;
+  imageDetectionActive=true;
   try {
     await handLandmarker.setOptions({runningMode:"IMAGE"});
     return handLandmarker.detect(canvas);
   } finally {
-    try {
-      await handLandmarker.setOptions({runningMode:"VIDEO"});
-    } finally {
-      imageDetectionActive = false;
-    }
+    try { await handLandmarker.setOptions({runningMode:"VIDEO"}); }
+    finally { imageDetectionActive=false; }
+  }
+}
+
+async function sendToSheets(letter, landmarks, angleFeatures) {
+  try {
+    await fetch(SHEETS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        letter,
+        landmarks,
+        angles: angleFeatures,
+        dists: []
+      }),
+      mode: "no-cors"  // Google Apps Script requires no-cors
+    });
+  } catch(e) {
+    console.warn("Sheets write failed:", e);
   }
 }
 
 window.submitContribution = async function() {
+  if (!consentCheck.checked) { setResult("Please agree to the terms before submitting.","error"); return; }
   if (!selectedLetter) { setResult("Please select a letter first.","error"); return; }
   if (!currentImageBlob) { setResult("Please provide an image first.","error"); return; }
-  setResult("Verifying...",""); document.getElementById("submitBtn").disabled=true;
+  setResult("Submitting...",""); submitBtn.disabled=true;
   try {
     const img=new Image(); img.src=URL.createObjectURL(currentImageBlob);
     await new Promise(r=>img.onload=r);
     const canvas=document.createElement("canvas"); canvas.width=img.width; canvas.height=img.height;
     canvas.getContext("2d").drawImage(img,0,0);
-    if (!handLandmarker) { setResult("Recogniser not loaded yet — scroll up and wait for it to initialise.","error"); return; }
+    if (!handLandmarker) { setResult("Recogniser not loaded yet — scroll up and wait for it to initialise.","error"); submitBtn.disabled=false; return; }
     const results=await detectStillImage(canvas); const hands=results.landmarks;
-    if (!hands||hands.length===0) { setResult("No hand detected. Make sure your hand is clearly visible.","error"); document.getElementById("submitBtn").disabled=false; return; }
-    const hand=hands[0]; const landmarks=[],landmarks_2d=[];
+    if (!hands||hands.length===0) { setResult("No hand detected. Make sure your hand is clearly visible.","error"); submitBtn.disabled=false; return; }
+    const hand=hands[0]; const landmarks=[], landmarks_2d=[];
     for (const lm of hand) { landmarks.push(lm.x,lm.y,lm.z); landmarks_2d.push([lm.x,lm.y]); }
-    const formData = new FormData();
-    formData.append("letter", selectedLetter);
-    formData.append("landmarks", JSON.stringify(landmarks));
-    formData.append("landmarks_2d", JSON.stringify(landmarks_2d));
-    formData.append("image", currentImageBlob, "contribution.jpg");
-    const res=await fetch(CONTRIBUTE_URL,{method:"POST",body:formData});
-    const data=await res.json(); const predicted=data.predicted_letter || ""; const conf=Math.round((data.confidence||0)*100);
+
+    // Send to Render backend
+     const formData=new FormData();
+    formData.append("letter",selectedLetter);
+    formData.append("landmarks",JSON.stringify(landmarks));
+    formData.append("landmarks_2d",JSON.stringify(landmarks_2d));
+    formData.append("image",currentImageBlob,"contribution.jpg");
+    const res=await fetch(CONTRIBUTE_URL,{method:"POST",body:formData,signal:AbortSignal.timeout(30000),headers:{"X-Contrib-Token":"asl-token-8472xq"}});
+    const data=await res.json();
+
     if (res.ok && data.saved) {
-      const trainedText = data.trained ? "saved and learned" : "saved";
-      setResult(`✓ Verified as "${selectedLetter}" (${conf}% confidence), ${trainedText}. Thank you!`,"success");
-      currentImageBlob = null;
+      // Also send to Google Sheets
+      await sendToSheets(selectedLetter, landmarks, data.angle_features || []);
+      setResult(`✓ Saved as "${selectedLetter}" — thank you for contributing!`,"success");
+      currentImageBlob=null; imageReady=false;
     } else {
-      setResult(data.detail || `✗ Model predicted "${predicted}" (${conf}%) instead of "${selectedLetter}". Try better lighting or a clearer angle.`,"error");
-      document.getElementById("submitBtn").disabled=false;
+      setResult(data.detail || "Something went wrong. Please try again.","error");
+      submitBtn.disabled=false;
     }
-  } catch(err) { setResult("Error: "+err.message,"error"); document.getElementById("submitBtn").disabled=false; }
+  } catch(err) {
+    setResult("Error: "+err.message,"error"); submitBtn.disabled=false;
+  }
 };
+
+// Keep Render warm
+setInterval(() => { fetch(HEALTH_URL,{cache:"no-store"}).catch(()=>{}); }, 5*60*1000);
+// ── Dark mode ──
+const themeToggle = document.getElementById("themeToggle");
+const themeIcon   = document.getElementById("themeIcon");
+
+const sunIcon  = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
+const moonIcon = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
+
+const savedTheme = localStorage.getItem("theme");
+if (savedTheme === "dark") {
+  document.body.classList.add("dark");
+  themeIcon.innerHTML = sunIcon;
+}
+
+themeToggle.addEventListener("click", () => {
+  const isDark = document.body.classList.toggle("dark");
+  themeIcon.innerHTML = isDark ? sunIcon : moonIcon;
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+});
+
+// ── Contribution counter ──
+async function loadContribCount() {
+  try {
+    const res = await fetch(SHEETS_URL, { method: "GET" });
+    const data = await res.json();
+    if (data.count !== undefined) {
+      document.getElementById("contribCount").textContent = data.count.toLocaleString();
+    }
+  } catch(e) {
+    document.getElementById("contribCount").textContent = "—";
+  }
+}
+loadContribCount();
 
 init();
 </script>

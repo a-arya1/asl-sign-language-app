@@ -22,6 +22,8 @@ from mediapipe.tasks.python import vision
 prediction = ""
 current_frame = None
 current_sentence = []
+
+
 lastLetter = ""
 lastTime = 0
 cooldown = 1.5
