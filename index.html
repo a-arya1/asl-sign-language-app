@@ -3,7 +3,16 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ASL Fingerspelling</title>
+<title>ASL Fingerspelling · Real-time Sign Language Recognition</title>
+<meta name="description" content="Sign a letter in front of your camera and watch AI recognize it in real time. Real-time ASL fingerspelling recognition built by Abhash Aryal."/>
+<meta property="og:title" content="ASL Fingerspelling · Real-time Sign Language Recognition"/>
+<meta property="og:description" content="Sign a letter in front of your camera and watch AI recognize it in real time. No installs, no plugins — runs entirely in your browser."/>
+<meta property="og:url" content="https://asl-sign-language-app.netlify.app"/>
+<meta property="og:type" content="website"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="ASL Fingerspelling · Real-time Sign Language Recognition"/>
+<meta name="twitter:description" content="Sign a letter in front of your camera and watch AI recognize it in real time."/>
+<link rel="icon" type="image/png" href="favicon.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
@@ -129,6 +138,38 @@
     text-transform:uppercase;
     color:var(--gold-dim);
     margin-bottom:var(--s3);
+  }
+
+  .how-to {
+    display:flex;
+    gap:var(--s2);
+    margin-bottom:var(--s4);
+    flex-wrap:wrap;
+  }
+  .how-to-step {
+    display:flex;
+    align-items:center;
+    gap:var(--s1);
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:10px var(--s2);
+    flex:1;
+    min-width:180px;
+  }
+  .how-to-num {
+    font-family:var(--font-display);
+    font-size:1.4rem;
+    font-weight:600;
+    color:var(--gold);
+    line-height:1;
+    flex-shrink:0;
+  }
+  .how-to-text {
+    font-family:var(--font-sans);
+    font-size:0.8rem;
+    color:var(--ink-light);
+    line-height:1.4;
   }
 
   #recogniser { padding-top:var(--s4); }
@@ -407,6 +448,31 @@
   }
   .footer-copy{font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);}
   .footer-note{font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.08em;color:var(--cream-dark);text-align:right;}
+  .footer-left {
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .footer-links {
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .footer-link {
+    font-family:var(--font-mono);
+    font-size:0.6rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-light);
+    text-decoration:none;
+    transition:color var(--transition);
+  }
+  .footer-link:hover { color:var(--maroon); }
+  .footer-link-divider {
+    font-family:var(--font-mono);
+    font-size:0.6rem;
+    color:var(--cream-dark);
+  }
 
   @media(max-width:800px){
     .main{grid-template-columns:1fr;}
@@ -483,6 +549,20 @@
     text-transform: uppercase;
     color: var(--ink-light);
   }
+  .count-skeleton {
+    display:inline-block;
+    width:60px;
+    height:2.2rem;
+    background:linear-gradient(90deg,var(--cream-mid) 25%,var(--cream-dark) 50%,var(--cream-mid) 75%);
+    background-size:200% 100%;
+    animation:shimmer 1.4s infinite;
+    border-radius:var(--radius-sm);
+    vertical-align:middle;
+  }
+  @keyframes shimmer {
+    0% { background-position:200% 0; }
+    100% { background-position:-200% 0; }
+  }
 </style>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-XE0YZDJFKM"></script>
 <script>
@@ -522,6 +602,24 @@
   <section id="recogniser">
     <div class="section-title">Sign a letter</div>
     <div class="section-subtitle">Hold your hand in frame and hold a sign still</div>
+    <div class="how-to">
+      <div class="how-to-step">
+        <div class="how-to-num">1</div>
+        <div class="how-to-text">Allow camera access when prompted</div>
+      </div>
+      <div class="how-to-step">
+        <div class="how-to-num">2</div>
+        <div class="how-to-text">Hold your hand clearly in frame — good lighting helps</div>
+      </div>
+      <div class="how-to-step">
+        <div class="how-to-num">3</div>
+        <div class="how-to-text">Sign a letter and hold it still — the ring fills as it stabilises</div>
+      </div>
+      <div class="how-to-step">
+        <div class="how-to-num">4</div>
+        <div class="how-to-text">Try starting with A, B, or C — they're the easiest to get a read on</div>
+      </div>
+    </div>
     <div class="main">
       <div class="camera-wrap">
         <div class="camera-panel">
@@ -689,7 +787,7 @@
   <section id="contribute">
     <div class="section-title">Help improve the model</div>
     <div class="contrib-counter" id="contribCounter">
-  <span class="contrib-count" id="contribCount">—</span>
+  <span class="contrib-count" id="contribCount"><span class="count-skeleton"></span></span>
   <span class="contrib-label">contributions submitted</span>
 </div>
     <div class="contribute-intro">
@@ -746,7 +844,16 @@
   </section>
 
   <footer>
-    <span class="footer-copy">ASL Fingerspelling · A–Z Recognition</span>
+    <div class="footer-left">
+      <span class="footer-copy">ASL Fingerspelling · Built by Abhash Aryal</span>
+      <div class="footer-links">
+        <a href="https://github.com/a-arya1/asl-sign-language-app" target="_blank" rel="noopener" class="footer-link">GitHub</a>
+        <span class="footer-link-divider">·</span>
+        <a href="#privacy" class="footer-link">Privacy</a>
+        <span class="footer-link-divider">·</span>
+        <a href="#contribute" class="footer-link">Contribute</a>
+      </div>
+    </div>
     <span class="footer-note">Hold each sign still · Good lighting improves accuracy</span>
   </footer>
 
@@ -1144,7 +1251,9 @@ async function loadContribCount() {
     const res = await fetch(SHEETS_URL, { method: "GET" });
     const data = await res.json();
     if (data.count !== undefined) {
-      document.getElementById("contribCount").textContent = data.count.toLocaleString();
+      const el = document.getElementById("contribCount");
+      el.innerHTML = "";
+      el.textContent = data.count.toLocaleString();
     }
   } catch(e) {
     document.getElementById("contribCount").textContent = "—";
